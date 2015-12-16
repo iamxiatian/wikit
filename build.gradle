@@ -1,0 +1,77 @@
+apply plugin: 'idea'
+apply plugin: 'java'
+
+group = 'ruc.irm'
+archivesBaseName = 'wikit'
+version = '0.2'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.7'
+}
+
+idea {
+    module {
+        downloadJavadoc = false
+        downloadSources = false
+    }
+}
+
+task copyJars(type: Copy) {
+    from configurations.runtime
+    into 'dist'
+}
+
+repositories {
+    mavenCentral()
+    mavenCentral name: "erichseifert.de", artifactUrls: ["http://mvn.erichseifert.de/maven2"]
+}
+
+dependencies {
+    compile(
+           // 'org.slf4j:slf4j-api:1.7.7',
+            'ch.qos.logback:logback-classic:1.1.3', //do not need to specify slf4j because of transitive dependencies
+
+            "com.google.guava:guava:18.0",
+
+            'org.apache.commons:commons-compress:1.8',
+            'org.apache.commons:commons-lang3:3.3.1',
+            'org.apache.commons:commons-collections4:4.0',
+            'commons-cli:commons-cli:1.2',
+            'commons-configuration:commons-configuration:1.10',
+            'commons-beanutils:commons-beanutils:1.9.0',
+            'commons-jxpath:commons-jxpath:1.3',
+            'info.bliki.wiki:bliki-core:3.0.19', //wiki
+            'de.tudarmstadt.ukp.dkpro.core:de.tudarmstadt.ukp.dkpro.core.io.jwpl-asl:1.5.0', //wiki process
+            'com.hankcs:hanlp:portable-1.2.4',
+            'org.apache.opennlp:opennlp-tools:1.5.3',
+            'org.ahocorasick:ahocorasick:0.3.0',
+            'edu.ucla.sspace:sspace:2.0.4',
+            'org.jgrapht:jgrapht-core:0.9.0',
+
+            'org.apache.lucene:lucene-core:4.7.0',
+            'org.apache.lucene:lucene-queryparser:4.7.0',
+            'org.apache.lucene:lucene-analyzers-common:4.7.0',
+            'org.apache.lucene:lucene-queries:4.7.0',
+            'org.apache.lucene:lucene-misc:4.7.0',
+            'org.apache.lucene:lucene-spatial:4.7.0',
+            'org.apache.lucene:lucene-suggest:4.7.0',
+            'com.alibaba:fastjson:1.2.3',
+            "com.fasterxml.jackson.core:jackson-core:2.4.0",
+            "com.fasterxml.jackson.core:jackson-annotations:2.4.0",
+            "com.fasterxml.jackson.core:jackson-databind:2.4.0",
+
+            'net.sf.trove4j:trove4j:3.0.3',
+            'mysql:mysql-connector-java:5.1.29',
+            'redis.clients:jedis:2.4.2',
+            'org.mongodb:mongo-java-driver:3.1.0',
+            'org.neo4j:neo4j:2.0.3',
+            'org.neo4j:neo4j-lucene-index:2.0.3',
+            'de.erichseifert.gral:gral-core:0.10', //java graph tool
+    )
+    testCompile('junit:junit:4.11',)
+}
+
+
