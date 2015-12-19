@@ -31,6 +31,9 @@ repositories {
 
 dependencies {
     compile(
+            files('lib/jsc.jar'),
+            files('lib/weka-wrapper-1.0.jar'),
+
            // 'org.slf4j:slf4j-api:1.7.7',
             'ch.qos.logback:logback-classic:1.1.3', //do not need to specify slf4j because of transitive dependencies
 
@@ -50,6 +53,7 @@ dependencies {
             'org.ahocorasick:ahocorasick:0.3.0',
             'edu.ucla.sspace:sspace:2.0.4',
             'org.jgrapht:jgrapht-core:0.9.0',
+            'nz.ac.waikato.cms.weka:weka-stable:3.6.13',
 
             'org.apache.lucene:lucene-core:4.7.0',
             'org.apache.lucene:lucene-queryparser:4.7.0',
@@ -66,6 +70,7 @@ dependencies {
             'net.sf.trove4j:trove4j:3.0.3',
             'mysql:mysql-connector-java:5.1.29',
             'redis.clients:jedis:2.4.2',
+            'com.sleepycat:je:5.0.73',
             'org.mongodb:mongo-java-driver:3.1.0',
             'org.neo4j:neo4j:2.0.3',
             'org.neo4j:neo4j-lucene-index:2.0.3',
