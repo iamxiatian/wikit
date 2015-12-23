@@ -1,4 +1,4 @@
-package ruc.irm.wikit.data.cache;
+package ruc.irm.wikit.cache;
 
 import ruc.irm.wikit.common.exception.MissedException;
 

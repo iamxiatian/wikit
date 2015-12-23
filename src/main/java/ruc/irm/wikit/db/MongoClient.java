@@ -1,4 +1,4 @@
- package ruc.irm.wikit.data.db;
+ package ruc.irm.wikit.db;
 
  import com.mongodb.client.MongoCollection;
  import com.mongodb.client.MongoDatabase;

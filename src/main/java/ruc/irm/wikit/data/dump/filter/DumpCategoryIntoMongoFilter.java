@@ -4,7 +4,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
 import org.bson.Document;
 import ruc.irm.wikit.common.conf.Conf;
-import ruc.irm.wikit.data.db.MongoClient;
+import ruc.irm.wikit.db.MongoClient;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 

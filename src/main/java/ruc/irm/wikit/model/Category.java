@@ -1,4 +1,4 @@
-package ruc.irm.wikit.data.cache;
+package ruc.irm.wikit.model;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;

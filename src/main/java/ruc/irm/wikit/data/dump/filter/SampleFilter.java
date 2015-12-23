@@ -2,8 +2,8 @@ package ruc.irm.wikit.data.dump.filter;
 
 import org.apache.commons.lang3.StringUtils;
 import ruc.irm.wikit.common.conf.Conf;
-import ruc.irm.wikit.data.cache.ArticleCache;
-import ruc.irm.wikit.data.cache.impl.ArticleCacheRedisImpl;
+import ruc.irm.wikit.cache.ArticleCache;
+import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 

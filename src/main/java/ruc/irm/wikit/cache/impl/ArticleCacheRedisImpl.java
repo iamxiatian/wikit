@@ -1,4 +1,4 @@
-package ruc.irm.wikit.data.cache.impl;
+package ruc.irm.wikit.cache.impl;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.MissedException;
-import ruc.irm.wikit.data.cache.ArticleCache;
-import ruc.irm.wikit.data.cache.NameIdMapping;
+import ruc.irm.wikit.cache.ArticleCache;
+import ruc.irm.wikit.cache.NameIdMapping;
 import ruc.irm.wikit.util.NumberUtils;
 
 import java.io.Closeable;

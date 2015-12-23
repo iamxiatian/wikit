@@ -1,4 +1,4 @@
-package ruc.irm.wikit.data.cache;
+package ruc.irm.wikit.cache;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -37,14 +37,18 @@ public interface Cache {
      * Save cache content to gzip compressed file, the gzip file should be specified by Conf
      *
      */
-    public void saveCacheToGZipFile() throws IOException;
+    public default void saveCacheToGZipFile() throws IOException {
+        throw new IOException("Cache Method NOT Implemented.");
+    };
 
     /**
      * Re-build cache content from previously saved gzip cache file, , the gzip file should be specified by Conf
      *
      * @throws IOException
      */
-    public void buildCacheFromGZipFile() throws IOException;
+    public default void buildCacheFromGZipFile() throws IOException{
+        throw new IOException("Cache Method NOT Implemented.");
+    };
 
     /**
      * Clear all cache content

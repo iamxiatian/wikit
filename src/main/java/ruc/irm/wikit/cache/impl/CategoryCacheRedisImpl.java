@@ -1,4 +1,4 @@
-package ruc.irm.wikit.data.cache.impl;
+package ruc.irm.wikit.cache.impl;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.Bag;
@@ -9,11 +9,10 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.MissedException;
-import ruc.irm.wikit.common.exception.WikitException;
-import ruc.irm.wikit.data.cache.Cache;
-import ruc.irm.wikit.data.cache.Category;
-import ruc.irm.wikit.data.cache.CategoryCache;
-import ruc.irm.wikit.data.cache.NameIdMapping;
+import ruc.irm.wikit.cache.Cache;
+import ruc.irm.wikit.model.Category;
+import ruc.irm.wikit.cache.CategoryCache;
+import ruc.irm.wikit.cache.NameIdMapping;
 import ruc.irm.wikit.util.NumberUtils;
 import ruc.irm.wikit.util.ProgressCounter;
 
