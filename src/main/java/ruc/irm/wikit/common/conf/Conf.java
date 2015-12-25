@@ -45,6 +45,10 @@ public class Conf extends Configuration {
         return path;
     }
 
+    public void setWorkDir(String workDir) {
+        set("work.dir", workDir);
+    }
+
     public File getDataDir() {
         File path = new File(get("data.dir"));
         if(!path.exists()){
@@ -150,14 +154,6 @@ public class Conf extends Configuration {
     public void setUserDefinedSegmentWords(String userDefinedSegmentWords) {
         set("segment.customized.words", userDefinedSegmentWords);
     }
-
-//    public String getWorkDir() {
-//        return get("work.dir", "~/esa");
-//    }
-//
-//    public void setWorkDir(String workDir) {
-//        set("work.dir", workDir);
-//    }
 
     public String getWikiPageInlinkFile() {
         return getEsaModelDir() + "/page_inlinks.txt";

@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Do not modify this file directly. Instead, copy entries that you wish
+    to modify from this file into conf-site.xml and change them there. If conf-site.xml
+    does not already exist, create it. -->
+
+<configuration>
+    <!-- the main working dir -->
+    <property>
+        <name>work.dir</name>
+        <value>${user.home}/esa/english</value>
+        <final>true</final>
+        <description>存放系统产生的各类数据文件的目录</description>
+    </property>
+
+    <property>
+        <name>redis.prefix</name>
+        <value></value>
+        <description>The default prefix for every redis key</description>
+    </property>
+
+    <property>
+        <name>category.redis.prefix</name>
+        <value></value>
+        <description>The default category.graph prefix for category</description>
+    </property>
+
+    <property>
+        <name>mongo.prefix</name>
+        <value>en.</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mysql.table.prefix</name>
+        <value>en_</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>wiki.article.category.root</name>
+        <value>Main topic classifications</value>
+        <final>true</final>
+        <description>The root classifications for wiki article</description>
+    </property>
+
+    <property>
+        <name>wiki.big5.to.gb</name>
+        <value>false</value>
+        <final>true</final>
+        <description></description>
+    </property>
+
+    <property>
+        <name>wiki.dump.file</name>
+        <value>${data.wiki.dump.en.pages}</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>wiki.dump.file.seq1</name>
+        <value>${work.dir}/dump/seq1.gz</value>
+        <description>由XML导出文件生成的序列文件的第1个版本</description>
+    </property>
+
+    <property>
+        <name>wiki.dump.file.seq2</name>
+        <value>${work.dir}/dump/seq2.gz</value>
+        <description>由XML导出文件生成的序列文件的第2个版本</description>
+    </property>
+
+    <property>
+        <name>wiki.dump.seq.file</name>
+        <value>${work.dir}/dump/seq.gz</value>
+        <description>PageSequenceDump遍历时处理的导出文件</description>
+    </property>
+
+    <property>
+        <name>wiki.dump.seq.file.article</name>
+        <value>${work.dir}/dump/seq-article.gz</value>
+        <description>PageSequenceDump遍历时处理的导出文件, 该文件仅包含维基文章</description>
+    </property>
+
+    <property>
+        <name>wiki.dump.seq.file.category</name>
+        <value>${work.dir}/dump/seq-category.gz</value>
+        <description>PageSequenceDump遍历时处理的导出文件, 该文件仅包含维基类别</description>
+    </property>
+
+    <property>
+        <name>wiki.stop.filter.min.links</name>
+        <value>20</value>
+        <description>If a wiki page's inlink and outlink count is less than
+            this property, then remove it to construct esa model.</description>
+    </property>
+
+    <property>
+        <name>wiki.stop.filter.min.words</name>
+        <value>100</value>
+        <description>If a wiki page's no stop words is less than this
+            property, then remove it.</description>
+    </property>
+
+
+    <property>
+        <name>esa.language</name>
+        <value>English</value>
+        <description>the language of data for ESA process, it should be Chinese or English </description>
+    </property>
+
+</configuration>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <!-- Console appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}#%M\(%line\) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--每天生成一个日志文件，保存30天的日志文件。-->
+    <appender name="DayFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}#%M\(%line\) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--根logger控制-->
+    <root level="WARN">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="DayFile" />
+    </root>
+
+    <!--指定logger name为包名或类全名 指定级别 additivity设置是否传递到root logger -->
+    <logger name="slf4j" level="WARN" additivity="false">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="DayFile"/>
+    </logger>
+
+    <!--slf4j2包下的类在ERROR级别时候传递到root logger中-->
+    <logger name="slf4j2" level="ERROR" />
+
+    <logger name="ruc.irm.wikit" level="INFO"/>
+</configuration>

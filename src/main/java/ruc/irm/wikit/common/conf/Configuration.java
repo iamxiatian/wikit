@@ -190,9 +190,7 @@ class Configuration implements Iterable<Map.Entry<String, String>> {
     }
 
     public static final void addDefaultResources(){
-        addDefaultResource("conf-default.xml");
-        addDefaultResource("conf-site.xml");
-        addDefaultResource("conf-dataset.xml");
+        addDefaultResource("wikit-default.xml");
     }
 
     /**

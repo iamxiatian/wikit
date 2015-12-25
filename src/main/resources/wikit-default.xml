@@ -1,0 +1,257 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Do not modify this file directly. Instead, copy entries that you wish
+    to modify from this file into conf-site.xml and change them there. If conf-site.xml
+    does not already exist, create it. -->
+
+<configuration>
+    <!-- the main working dir -->
+    <property>
+        <name>work.dir</name>
+        <value>${user.home}/esa</value>
+        <description>存放系统产生的各类数据文件的目录, 默认为用户在操作系统下的主目录</description>
+    </property>
+
+    <property>
+        <name>index.dir</name>
+        <value>${work.dir}/index</value>
+    </property>
+
+    <property>
+        <name>cache.dir</name>
+        <value>${work.dir}/cache</value>
+    </property>
+
+    <property>
+        <name>data.dir</name>
+        <value>${work.dir}/data</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>model.dir</name>
+        <value>${work.dir}/model</value>
+        <description></description>
+    </property>
+
+
+
+
+    <property>
+        <name>cache.file.graphtree</name>
+        <value>${cache.dir}/cache.category.tree.gz</value>
+    </property>
+
+    <property>
+        <name>cache.file.concept</name>
+        <value>${cache.dir}/cache.concept.gz</value>
+    </property>
+
+    <property>
+        <name>redis.default.host</name>
+        <value>127.0.0.1</value>
+        <description>redis host</description>
+    </property>
+
+    <property>
+        <name>redis.default.port</name>
+        <value>6379</value>
+        <description>redis port</description>
+    </property>
+
+    <property>
+        <name>redis.timeout</name>
+        <value>15000</value>
+        <description>redis port</description>
+    </property>
+
+    <property>
+        <name>redis.prefix</name>
+        <value></value>
+        <description>The default prefix for every redis key</description>
+    </property>
+
+    <property>
+        <name>category.redis.prefix</name>
+        <value></value>
+        <description>The default category.graph prefix for category</description>
+    </property>
+
+    <!-- ESA settings -->
+    <property>
+        <name>esa.model.dir</name>
+        <value>${model.dir}/esa</value>
+        <description>model dir for ESA</description>
+    </property>
+
+    <property>
+        <name>esa.model.title.boost</name>
+        <value>1.0</value>
+        <description>Boost title field when build ESA model(see IndexMining class)</description>
+    </property>
+
+    <property>
+        <name>esa.index.dir</name>
+        <value>${index.dir}/esa</value>
+    </property>
+
+    <property>
+        <name>esa.redis.host</name>
+        <value>${redis.default.host}</value>
+        <description>redis host to store ESA and ESPM content</description>
+    </property>
+
+    <property>
+        <name>esa.redis.port</name>
+        <value>${redis.default.port}</value>
+        <description>redis port to store  ESA and ESPM content</description>
+    </property>
+
+    <property>
+        <name>esa.language</name>
+        <value>Chinese</value>
+        <description>the language of data for ESA process, it should be Chinese or English </description>
+    </property>
+
+    <property>
+        <name>esa.popular.lambda</name>
+        <value>0.5</value>
+    </property>
+    <!-- end esa settings -->
+
+
+    <property>
+        <name>mongo.host</name>
+        <value>127.0.0.1</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mongo.dbname</name>
+        <value>wiki</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mongo.port</name>
+        <value>27017</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mongo.prefix</name>
+        <value>zh.</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mysql.host</name>
+        <value>127.0.0.1</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mysql.dbname</name>
+        <value>wiki</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mysql.port</name>
+        <value>3306</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mysql.username</name>
+        <value>root</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mysql.password</name>
+        <value>xiatian</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>mysql.table.prefix</name>
+        <value></value>
+        <description>the table prefix for mysql</description>
+    </property>
+
+    <!-- category properties -->
+    <property>
+        <name>category.mongo.prefix</name>
+        <value>en.</value>
+        <description>category graph mongo prefix</description>
+    </property>
+
+
+    <property>
+        <name>category.language.target</name>
+        <value>English</value>
+        <description>
+            The target language of category, if the target language is different with wiki.data.lang,
+            We'll use lang mapping process to find the categories for given page id.
+        </description>
+    </property>
+
+    <property>
+        <name>wiki.big5.to.gb</name>
+        <value>false</value>
+        <description></description>
+    </property>
+
+
+
+    <property>
+        <name>wiki.dump.file</name>
+        <value>${data.dir}/wiki/enwiki-20140304-pages-articles-multistream.xml.bz2</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>wiki.dump.file.seq1</name>
+        <value>${data.dir}/wiki/seq/seq1.gz</value>
+        <description>由XML导出文件生成的序列文件的第1个版本</description>
+    </property>
+
+    <property>
+        <name>wiki.dump.file.seq2</name>
+        <value>${data.dir}/wiki/seq/seq2.gz</value>
+        <description>由XML导出文件生成的序列文件的第2个版本</description>
+    </property>
+
+    <property>
+        <name>wiki.dump.seq.file</name>
+        <value>${data.dir}/wiki/seq/seq2.gz</value>
+        <description>PageSequenceDump遍历时处理的导出文件</description>
+    </property>
+
+    <property>
+        <name>wiki.dump.seq.file.article</name>
+        <value>${data.dir}/wiki/seq/seq-article.gz</value>
+        <description>PageSequenceDump遍历时处理的导出文件, 该文件仅包含维基文章</description>
+    </property>
+
+    <property>
+        <name>wiki.dump.seq.file.category</name>
+        <value>${data.dir}/wiki/seq/seq-category.gz</value>
+        <description>PageSequenceDump遍历时处理的导出文件, 该文件仅包含维基类别</description>
+    </property>
+
+    <!-- experimental parameters -->
+    <property>
+        <name>expt.odp.file.ttopics.csv</name>
+        <value>${data.dir}/odp/ttopics.csv</value>
+        <description>The ODP experimental file: ttopics.csv</description>
+    </property>
+
+    <property>
+        <name>expt.odp.stemming</name>
+        <value>true</value>
+        <description>see OdbExptData</description>
+    </property>
+
+</configuration>

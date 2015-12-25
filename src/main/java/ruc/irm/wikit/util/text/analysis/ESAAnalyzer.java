@@ -40,7 +40,7 @@ public class ESAAnalyzer extends Analyzer {
 
         try {
             // read stop words
-            InputStream is = this.getClass().getResourceAsStream("/config/stopwords.txt");
+            InputStream is = this.getClass().getResourceAsStream("/dict/stopwords.txt");
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             while ((line = br.readLine()) != null) {
                 line = line.trim();
