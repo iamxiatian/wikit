@@ -13,6 +13,12 @@
     </property>
 
     <property>
+        <name>berkeley.db.dir</name>
+        <value>/tmp/bdb</value>
+        <description>berkeley db home path</description>
+    </property>
+
+    <property>
         <name>redis.prefix</name>
         <value>z:</value>
         <description>中文维基默认采用z作为redis前缀</description>

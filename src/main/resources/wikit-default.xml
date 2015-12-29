@@ -29,6 +29,13 @@
     </property>
 
     <property>
+        <name>berkeley.db.dir</name>
+        <value>${data.dir}/bdb</value>
+        <description>berkeley db home path</description>
+    </property>
+
+
+    <property>
         <name>model.dir</name>
         <value>${work.dir}/model</value>
         <description></description>

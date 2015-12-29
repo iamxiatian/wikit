@@ -15,9 +15,9 @@ public class PageToMongoFilter implements WikiPageFilter {
     private MongoCollection<Document> collection = null;
     private Conf conf = null;
 
-    public PageToMongoFilter(Conf conf, String simpleCollectionName) {
+    public PageToMongoFilter(Conf conf, String collectionName) {
         this.conf = conf;
-        this.collection = MongoClient.getCollection(conf, simpleCollectionName);
+        this.collection = MongoClient.getCollection(conf, collectionName);
         this.collection.drop();
     }
 
