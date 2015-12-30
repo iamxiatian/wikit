@@ -12,11 +12,11 @@
         <description>存放系统产生的各类数据文件的目录</description>
     </property>
 
-    <property>
-        <name>berkeley.db.dir</name>
-        <value>/tmp/bdb</value>
-        <description>berkeley db home path</description>
-    </property>
+    <!--<property>-->
+        <!--<name>berkeley.db.dir</name>-->
+        <!--<value>/tmp/bdb</value>-->
+        <!--<description>berkeley db home path</description>-->
+    <!--</property>-->
 
     <property>
         <name>redis.prefix</name>

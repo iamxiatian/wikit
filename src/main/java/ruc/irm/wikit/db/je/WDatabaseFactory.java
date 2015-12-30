@@ -43,7 +43,6 @@ public class WDatabaseFactory {
 			protected void loading(Database db, ProgressTracker tracker) throws IOException {
 				PageXmlDump dump = new PageXmlDump(env.getConf());
 				dump.open();
-				int count = 0;
 
 				ProgressCounter counter = new ProgressCounter();
 				while (dump.hasNext()) {
@@ -62,13 +61,13 @@ public class WDatabaseFactory {
 						DatabaseEntry v = new DatabaseEntry();
 						valueBinding.objectToEntry(dbPage, v);
 
-						System.out.println("id==>" + id);
 						db.put(null, k, v);
 					}
 
-					if(count++>100) break;
+					//if(count++>100) break;
 				}
 				dump.close();
+				System.out.println("Total count:" + counter.getCount());
 				counter.done();
 			}
 		};
