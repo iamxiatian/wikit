@@ -47,6 +47,7 @@ public class Page implements Comparable<Page> {
 	protected int id ;
 	protected String title ;
 	protected PageType type ;
+	protected String content;
 	protected int depth ;
 	protected Double weight = null ;
 
@@ -183,6 +184,16 @@ public class Page implements Comparable<Page> {
 	}
 
 	/**
+	 * @return the title
+	 */
+	public String getContent() {
+		if (!detailsSet) setDetails() ;
+
+		return content;
+	}
+
+
+	/**
 	 * @return	the type of the page
 	 */
 	public PageType getType() {
@@ -281,7 +292,7 @@ public class Page implements Comparable<Page> {
 	private void setDetails(DbPage pd)  {
 		title = pd.getTitle() ;
 		type = PageType.values()[pd.getType()] ;
-
+		content = pd.getText();
 		detailsSet = true ;
 	}
 

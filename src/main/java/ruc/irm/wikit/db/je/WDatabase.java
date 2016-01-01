@@ -239,7 +239,12 @@ public  abstract class WDatabase<K,V> {
         }
     }
 
-
+    /**
+     * @return an iterator for the entries in this database, in ascending key order.
+     */
+    public WIterator<K,V> getIterator() {
+        return new WIterator<K,V>(this) ;
+    }
 
     /**
      * Builds the persistent database, usually load from PageDump.

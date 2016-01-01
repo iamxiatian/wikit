@@ -129,12 +129,14 @@ public class WEnvironment {
     }
 
     public static void main(String[] args) throws ParseException, IOException {
-        String helpMsg = "usage: WEnvironment -c config.xml -overwrite true";
+        String helpMsg = "usage: WEnvironment -c config.xml -overwrite true " +
+                "-build";
 
         HelpFormatter helpFormatter = new HelpFormatter();
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
         options.addOption(new Option("c", true, "config file"));
+        options.addOption(new Option("build", false, "build Environment"));
         options.addOption(new Option("overwrite", true, "true or false"));
 
         CommandLine commandLine = parser.parse(options, args);
@@ -145,7 +147,13 @@ public class WEnvironment {
 
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         boolean overwrite = BooleanUtils.toBoolean(commandLine.getOptionValue("overwrite"));
-        WEnvironment.buildEnvironment(conf, overwrite);
-        System.out.println("I'm DONE for create WEnvironment!");
+        if(commandLine.hasOption("build")) {
+            WEnvironment.buildEnvironment(conf, overwrite);
+
+            System.out.println("I'm DONE for create WEnvironment!");
+        } else {
+            System.out.println("Please specify -build parameter to build the " +
+                    "environment");
+        }
     }
 }

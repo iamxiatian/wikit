@@ -28,11 +28,15 @@ import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.db.je.WEnvironment;
+import ruc.irm.wikit.db.je.it.PageIterator;
 import ruc.irm.wikit.model.Page;
 import ruc.irm.wikit.util.ProgressTracker;
+import scala.Console;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Scanner;
 
 
 /**
@@ -42,17 +46,6 @@ public class Wikipedia {
 	private static Logger LOG = LoggerFactory.getLogger(Wikipedia.class);
 	private WEnvironment env ;
 
-	/**
-	 * Initialises a newly created Wikipedia according to the given configuration. 
-	 * 
-	 * This can be a time consuming process if the given configuration specifies databases that need to be cached to memory.
-	 * 
-	 * This preparation can be done in a separate thread if required, in which case progress can be tracked using {@link #getProgress()}, {@link #getPreparationTracker()} and {@link #isReady()}.
-	 *  
-	 * @param conf a configuration that describes where the databases are located, etc. 
-	 * @param threadedPreparation true if preparation (connecting to databases, caching data to memory) should be done in a separate thread, otherwise false
-	 * @throws EnvironmentLockedException if the underlying database environment is unavailable.
-	 */
 	public Wikipedia(Conf conf) throws
 			EnvironmentLockedException {
 		this.env = new WEnvironment(conf) ;
@@ -89,6 +82,15 @@ public class Wikipedia {
 	}
 
 	/**
+	 * Returns an iterator for all pages in the database, in order of ascending ids.
+	 *
+	 * @return an iterator for all pages in the database, in order of ascending ids.
+	 */
+	public PageIterator getPageIterator() {
+		return new PageIterator(env) ;
+	}
+
+	/**
 	 * Tidily closes the database environment behind this wikipedia instance. This should be done whenever
 	 * one is finished using it. 
 	 */
@@ -110,7 +112,8 @@ public class Wikipedia {
 		CommandLineParser parser = new PosixParser();
 		Options options = new Options();
 		options.addOption(new Option("c", true, "config file"));
-		options.addOption(new Option("pid", true, "page id"));
+		options.addOption(new Option("pid", true, "view page by id"));
+		options.addOption(new Option("plist", false, "view page list"));
 
 		CommandLine commandLine = parser.parse(options, args);
 		if (!commandLine.hasOption("c")) {
@@ -125,9 +128,29 @@ public class Wikipedia {
 			String pid = commandLine.getOptionValue("pid");
 			Page page = wikipedia.getPageById(NumberUtils.toInt(pid));
 			System.out.println(page);
+			if (page != null) {
+				System.out.println(page.getContent());
+			}
+		} else if (commandLine.hasOption("plist")) {
+			PageIterator it = wikipedia.getPageIterator();
+			Scanner scanner = new Scanner(System.in);
+			while (it.hasNext()) {
+				Page page = it.next();
+				System.out.println(page);
+				if (page.getContent().length() > 200) {
+					System.out.println(page.getContent().substring(0, 200));
+				} else {
+					System.out.println(page.getContent());
+				}
+
+				System.out.println("type exit to return, or enter to continue");
+				String command = scanner.nextLine();
+				if (command.equalsIgnoreCase("exit")) {
+					break;
+				}
+			}
+			it.close();
 		}
-		boolean overwrite = BooleanUtils.toBoolean(commandLine.getOptionValue("overwrite"));
-		WEnvironment.buildEnvironment(conf, overwrite);
-		System.out.println("I'm DONE for create WEnvironment!");
+		wikipedia.close();
 	}
 }

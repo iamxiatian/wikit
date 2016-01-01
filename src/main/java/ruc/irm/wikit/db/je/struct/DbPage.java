@@ -13,6 +13,11 @@ import java.io.*;
 public class DbPage extends Record {
     private int id;
     private String title;
+
+    public String getText() {
+        return text;
+    }
+
     private String text;
     private int type;
 
