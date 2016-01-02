@@ -49,7 +49,7 @@ public class PageIterator implements Iterator<Page> {
 	public PageIterator(WEnvironment env) {
 
 		this.env = env ;
-		iter = env.getPageDatabase().getIterator() ;
+		iter = env.getDbPage().getIterator() ;
 		
 		queueNext() ;
 	}
@@ -57,7 +57,7 @@ public class PageIterator implements Iterator<Page> {
 	public PageIterator(WEnvironment env, PageType type)  {
 
 		this.env = env ;
-		iter = env.getPageDatabase().getIterator() ;
+		iter = env.getDbPage().getIterator() ;
 		this.type = type ;
 		
 		queueNext() ;

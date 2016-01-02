@@ -228,7 +228,7 @@ public class Page implements Comparable<Page> {
 	 */
 	public static Page createPage(WEnvironment env, int id)  {
 
-		DbPage pd = env.getPageDatabase().retrieve(id) ;
+		DbPage pd = env.getDbPage().retrieve(id) ;
 
 		if (pd != null)
 			return createPage(env, id, pd) ;
@@ -276,7 +276,7 @@ public class Page implements Comparable<Page> {
 	private void setDetails()  {
 
 		try {
-			DbPage pd = env.getPageDatabase().retrieve(id) ;
+			DbPage pd = env.getDbPage().retrieve(id) ;
 
 			if (pd == null) {
 				throw new Exception() ;
