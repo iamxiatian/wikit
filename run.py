@@ -84,5 +84,5 @@ else:
 	for i in range(2,len(args)):
 		command = command + ' "' + args[i] + '"'
 
-	print "execute ", command
+	#print "execute ", command
 	os.system(command)

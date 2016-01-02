@@ -30,7 +30,7 @@ public class WIterator<K,V> implements Iterator<WEntry<K,V>> {
 	public WIterator(WDatabase<K, V> database) {
 		
 		this.db = database ;
-		cursor = db.getDatabase(true).openCursor(null, null) ;
+		cursor = db.open(true).openCursor(null, null) ;
 		cursor.setCacheMode(CacheMode.UNCHANGED) ;
 
 		queueNext() ;	

@@ -26,6 +26,6 @@ public abstract class Record {
         return outBytes.toByteArray();
     }
 
-    protected abstract void writeIn(ObjectOutputStream output) throws
+    protected abstract void writeIn(ObjectOutputStream out) throws
             IOException;
 }

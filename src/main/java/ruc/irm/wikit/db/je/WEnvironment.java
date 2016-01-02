@@ -24,8 +24,10 @@ public class WEnvironment {
 
     private Conf conf ;
 	private Environment env ;
-	private WDatabase<Integer, DbPage> pageDatabase ;
-	private WDatabase<String,Integer> dbArticlesByTitle ;
+	private WDatabase<Integer, DbPage> dbPage ;
+	private WDatabase<String,Integer> dbArticlesByTitle;
+    private WDatabase<String,Integer> dbCategoriesByTitle ;
+    ;
 	private WDatabase<Integer, Long> dbStatistics ;
 
 
@@ -56,8 +58,14 @@ public class WEnvironment {
 
         databasesByType = new HashMap<DatabaseType, WDatabase>() ;
 
-        pageDatabase = dbFactory.buildPageDatabase();
-        databasesByType.put(DatabaseType.page, pageDatabase);
+        dbPage = dbFactory.buildPageDatabase();
+        databasesByType.put(DatabaseType.page, dbPage);
+
+        dbArticlesByTitle = dbFactory.buildTitleDatabase(DatabaseType.articlesByTitle);
+        databasesByType.put(DatabaseType.articlesByTitle, dbArticlesByTitle);
+
+        dbCategoriesByTitle = dbFactory.buildTitleDatabase(DatabaseType.categoriesByTitle);
+        databasesByType.put(DatabaseType.categoriesByTitle, dbCategoriesByTitle);
     }
 	
 
@@ -70,8 +78,16 @@ public class WEnvironment {
      *
      * @return see {@link DatabaseType#page}
      */
-    public WDatabase<Integer, DbPage> getPageDatabase() {
-        return pageDatabase;
+    public WDatabase<Integer, DbPage> getDbPage() {
+        return dbPage;
+    }
+
+    public WDatabase<String, Integer> getDbArticlesByTitle() {
+        return dbArticlesByTitle;
+    }
+
+    public WDatabase<String, Integer> getDbCategoriesByTitle() {
+        return dbCategoriesByTitle;
     }
 
 	/**
@@ -96,7 +112,7 @@ public class WEnvironment {
 		}
 	}
 
-    protected void cleanAndCheckpoint() throws DatabaseException {
+    public void cleanAndCheckpoint() throws DatabaseException {
         LOG.info("Starting cleaning") ;
         boolean anyCleaned = false;
         while (env.cleanLog() > 0) {
@@ -120,40 +136,4 @@ public class WEnvironment {
 		return env ;
 	}
 
-    public static void buildEnvironment(Conf conf, boolean overwrite) throws IOException {
-        WEnvironment env = new WEnvironment(conf);
-
-        env.pageDatabase.loadData(overwrite, null);
-
-        env.close();
-    }
-
-    public static void main(String[] args) throws ParseException, IOException {
-        String helpMsg = "usage: WEnvironment -c config.xml -overwrite true " +
-                "-build";
-
-        HelpFormatter helpFormatter = new HelpFormatter();
-        CommandLineParser parser = new PosixParser();
-        Options options = new Options();
-        options.addOption(new Option("c", true, "config file"));
-        options.addOption(new Option("build", false, "build Environment"));
-        options.addOption(new Option("overwrite", true, "true or false"));
-
-        CommandLine commandLine = parser.parse(options, args);
-        if (!commandLine.hasOption("c") || !commandLine.hasOption("overwrite")) {
-            helpFormatter.printHelp(helpMsg, options);
-            return;
-        }
-
-        Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
-        boolean overwrite = BooleanUtils.toBoolean(commandLine.getOptionValue("overwrite"));
-        if(commandLine.hasOption("build")) {
-            WEnvironment.buildEnvironment(conf, overwrite);
-
-            System.out.println("I'm DONE for create WEnvironment!");
-        } else {
-            System.out.println("Please specify -build parameter to build the " +
-                    "environment");
-        }
-    }
 }

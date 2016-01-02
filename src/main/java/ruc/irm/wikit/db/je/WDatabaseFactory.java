@@ -1,14 +1,18 @@
 package ruc.irm.wikit.db.je;
 
+import com.sleepycat.bind.tuple.IntegerBinding;
+import com.sleepycat.bind.tuple.StringBinding;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseEntry;
 import ruc.irm.wikit.data.dump.impl.PageXmlDump;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
+import ruc.irm.wikit.db.je.WDatabase.DatabaseType;
 import ruc.irm.wikit.db.je.struct.DbPage;
 import ruc.irm.wikit.util.ProgressCounter;
 import ruc.irm.wikit.util.ProgressTracker;
 
 import java.io.*;
+import java.util.List;
 
 
 /**
@@ -34,45 +38,25 @@ public class WDatabaseFactory {
 			}
 		} ;
 
-		return new IntObjectDatabase<DbPage>(
+		return new WDatabase<Integer, DbPage>(
 				env,
-				WDatabase.DatabaseType.page,
+				DatabaseType.page,
+				new IntegerBinding(),
 				keyBinding
-		) {
-			@Override
-			protected void loading(Database db, ProgressTracker tracker) throws IOException {
-				PageXmlDump dump = new PageXmlDump(env.getConf());
-				dump.open();
-
-				ProgressCounter counter = new ProgressCounter();
-				while (dump.hasNext()) {
-					WikiPage wikiPage = dump.next();
-					counter.increment();
-
-					if(wikiPage.isArticle() || wikiPage.isCategory()) {
-						int ns = Integer.parseInt(wikiPage.getNs());
-						int id = wikiPage.getId();
-						DbPage dbPage = new DbPage(id, wikiPage.getTitle(),
-								ns, wikiPage.getText());
-
-						DatabaseEntry k = new DatabaseEntry();
-						keyBinding.objectToEntry(id, k);
-
-						DatabaseEntry v = new DatabaseEntry();
-						valueBinding.objectToEntry(dbPage, v);
-
-						db.put(null, k, v);
-					}
-
-					//if(count++>100) break;
-				}
-				dump.close();
-				System.out.println("Total count:" + counter.getCount());
-				counter.done();
-			}
-		};
+		);
 	}
 
+	public WDatabase<String, Integer> buildTitleDatabase(DatabaseType type) {
+		if (type != DatabaseType.articlesByTitle && type != DatabaseType.categoriesByTitle)
+			throw new IllegalArgumentException("type must be either DatabaseType.articlesByTitle or DatabaseType.categoriesByTitle") ;
+
+		return new WDatabase<String, Integer>(
+				env,
+				type,
+				new StringBinding(),
+				new IntegerBinding()
+		);
+	}
 }
 
 

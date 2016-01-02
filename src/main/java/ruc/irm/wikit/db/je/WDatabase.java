@@ -3,15 +3,12 @@ package ruc.irm.wikit.db.je;
 import com.sleepycat.bind.EntryBinding;
 import com.sleepycat.je.*;
 import gnu.trove.map.hash.THashMap;
-import ruc.irm.wikit.util.ProgressTracker;
-
-import java.io.*;
 
 /**
  * @author Tian Xia
  * @date Dec 25, 2015 11:29 AM
  */
-public  abstract class WDatabase<K,V> {
+public class WDatabase<K,V> {
 
     /**
      * Database types
@@ -27,6 +24,16 @@ public  abstract class WDatabase<K,V> {
          * Associates String labels with the statistics about the articles (senses) these labels could refer to
          */
         label,
+
+        /**
+         * Associates String titles with the id of the page within the article namespace that this refers to
+         */
+        articlesByTitle,
+
+        /**
+         * Associates String titles with the id of the page within the category namespace that this refers to
+         */
+        categoriesByTitle,
     }
 
 
@@ -74,8 +81,7 @@ public  abstract class WDatabase<K,V> {
         this.database = null ;
     }
 
-
-    protected Database getDatabase(boolean readOnly) throws DatabaseException {
+    public Database open(boolean readOnly) throws DatabaseException {
         DatabaseConfig conf = new DatabaseConfig() ;
 
         conf.setReadOnly(readOnly) ;
@@ -109,7 +115,7 @@ public  abstract class WDatabase<K,V> {
      */
     public boolean exists() {
         try {
-            getDatabase(true) ;
+            open(true) ;
         } catch(DatabaseNotFoundException e) {
             return false ;
         }
@@ -206,7 +212,7 @@ public  abstract class WDatabase<K,V> {
         if (isCached) {
             return retrieveFromCache(key) ;
         } else {
-            Database db = getDatabase(true) ;
+            Database db = open(true) ;
 
             DatabaseEntry dbKey = new DatabaseEntry() ;
             keyBinding.objectToEntry(key, dbKey) ;
@@ -246,27 +252,4 @@ public  abstract class WDatabase<K,V> {
         return new WIterator<K,V>(this) ;
     }
 
-    /**
-     * Builds the persistent database, usually load from PageDump.
-     *
-     * @param overwrite true if the existing database should be overwritten, otherwise false
-     * @param tracker an optional progress tracker (may be null)
-     * @throws IOException if there is a problem reading or deserialising the given data file.
-     */
-    public void loadData(boolean overwrite, ProgressTracker tracker) throws IOException  {
-
-        if (exists() && !overwrite)
-            return ;
-
-        if (tracker == null) tracker = new ProgressTracker(1, WDatabase.class) ;
-
-        Database db = getDatabase(false) ;
-
-        loading(db, tracker);
-
-        env.cleanAndCheckpoint() ;
-        getDatabase(true) ;
-    }
-
-    protected abstract void loading(Database db, ProgressTracker tracker) throws IOException;
 }
