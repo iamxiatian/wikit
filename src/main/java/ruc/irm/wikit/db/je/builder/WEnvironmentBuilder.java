@@ -21,8 +21,6 @@ import java.io.IOException;
  */
 public class WEnvironmentBuilder {
     private Conf conf = null;
-
-    private WEnvironment env = null;
     private boolean overwrite;
 
     public WEnvironmentBuilder(Conf conf, boolean overwrite) {
@@ -34,7 +32,7 @@ public class WEnvironmentBuilder {
     public void build(Conf conf) throws IOException {
         WikiPageDump dump = new PageXmlDump(conf);
 
-        this.env = new WEnvironment(conf);
+        WEnvironment env = new WEnvironment(conf);
 
         TitleDbFilter articleTitleDbFilter = new TitleDbFilter(env,
                 DatabaseType.articlesByTitle, overwrite);
@@ -67,8 +65,9 @@ public class WEnvironmentBuilder {
 
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         boolean overwrite = BooleanUtils.toBoolean(commandLine.getOptionValue("overwrite"));
+
         if(commandLine.hasOption("build")) {
-            WEnvironmentBuilder builder = new WEnvironmentBuilder(conf, false);
+            WEnvironmentBuilder builder = new WEnvironmentBuilder(conf, overwrite);
             builder.build(conf);
             System.out.println("I'm DONE for build WEnvironment!");
         } else {

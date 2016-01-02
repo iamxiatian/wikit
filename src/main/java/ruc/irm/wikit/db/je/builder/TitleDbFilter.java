@@ -26,7 +26,8 @@ public class TitleDbFilter implements WikiPageFilter {
     private DatabaseType type = null;
 
     public TitleDbFilter(WEnvironment env, DatabaseType type, boolean overwrite) {
-        this.env = new WEnvironment(conf);
+        this.env = env;
+        this.type = type;
 
         if(type== DatabaseType.articlesByTitle){
             dbByTitle = env.getDbArticlesByTitle();
@@ -43,6 +44,7 @@ public class TitleDbFilter implements WikiPageFilter {
         } else {
             //open database for writing
             dbByTitle.open(false);
+            System.out.println("prepare to build title--id mapping db.");
         }
     }
 

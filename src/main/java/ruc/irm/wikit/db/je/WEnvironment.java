@@ -41,7 +41,8 @@ public class WEnvironment {
 		envConf.setAllowCreate(true) ;
 		envConf.setReadOnly(false) ;
 
-		File envDir = new File(conf.get("berkeley.db.dir", "bdb"));
+        System.out.println("berkeley db path:" + conf.get("berkeley.db.dir"));
+        File envDir = new File(conf.get("berkeley.db.dir", "bdb"));
 		envDir.mkdirs();
 
 		env = new Environment(envDir, envConf) ;

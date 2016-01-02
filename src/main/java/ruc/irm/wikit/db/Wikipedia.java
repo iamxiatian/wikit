@@ -23,13 +23,19 @@ import com.sleepycat.je.EnvironmentLockedException;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
+import ruc.irm.wikit.db.je.WDatabase;
+import ruc.irm.wikit.db.je.WEntry;
 import ruc.irm.wikit.db.je.WEnvironment;
 import ruc.irm.wikit.db.je.it.PageIterator;
+import ruc.irm.wikit.db.je.it.TitleIterator;
 import ruc.irm.wikit.model.Page;
+import ruc.irm.wikit.util.ConsoleLoop;
 import ruc.irm.wikit.util.ProgressTracker;
 import scala.Console;
 
@@ -37,6 +43,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Scanner;
+
+import static ruc.irm.wikit.db.je.WDatabase.DatabaseType.articlesByTitle;
+import static ruc.irm.wikit.db.je.WDatabase.DatabaseType.categoriesByTitle;
 
 
 /**
@@ -81,16 +90,27 @@ public class Wikipedia {
 		return Page.createPage(env, id) ;
 	}
 
-	/**
-	 * Returns an iterator for all pages in the database, in order of ascending ids.
-	 *
-	 * @return an iterator for all pages in the database, in order of ascending ids.
-	 */
 	public PageIterator getPageIterator() {
 		return new PageIterator(env) ;
 	}
 
-	/**
+    public Integer getIdByArticleTitle(String title) {
+        return env.getDbArticlesByTitle().retrieve(title);
+    }
+
+    public TitleIterator getArticleTitleIterator() {
+        return new TitleIterator(env, articlesByTitle) ;
+    }
+
+    public Integer getIdByCategoryTitle(String title) {
+        return env.getDbCategoriesByTitle().retrieve(title);
+    }
+
+    public TitleIterator getCategoryTitleIterator() {
+        return new TitleIterator(env, categoriesByTitle) ;
+    }
+
+    /**
 	 * Tidily closes the database environment behind this wikipedia instance. This should be done whenever
 	 * one is finished using it. 
 	 */
@@ -112,45 +132,128 @@ public class Wikipedia {
 		CommandLineParser parser = new PosixParser();
 		Options options = new Options();
 		options.addOption(new Option("c", true, "config file"));
-		options.addOption(new Option("pid", true, "view page by id"));
-		options.addOption(new Option("plist", false, "view page list"));
+		options.addOption(new Option("type", true, "database type: " +
+                "articleByTitle|categoryByTitle|page"));
 
 		CommandLine commandLine = parser.parse(options, args);
-		if (!commandLine.hasOption("c")) {
+		if (!commandLine.hasOption("c") || !commandLine.hasOption("type")) {
 			helpFormatter.printHelp(helpMsg, options);
 			return;
 		}
 
 		Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
 		Wikipedia wikipedia = new Wikipedia(conf);
+        String type = commandLine.getOptionValue("type");
 
-		if (commandLine.hasOption("pid")) {
-			String pid = commandLine.getOptionValue("pid");
-			Page page = wikipedia.getPageById(NumberUtils.toInt(pid));
-			System.out.println(page);
-			if (page != null) {
-				System.out.println(page.getContent());
-			}
-		} else if (commandLine.hasOption("plist")) {
-			PageIterator it = wikipedia.getPageIterator();
-			Scanner scanner = new Scanner(System.in);
-			while (it.hasNext()) {
-				Page page = it.next();
-				System.out.println(page);
-				if (page.getContent().length() > 200) {
-					System.out.println(page.getContent().substring(0, 200));
-				} else {
-					System.out.println(page.getContent());
-				}
+        switch (type) {
+            case "page":
+                ConsoleLoop.loop(new ImmutableTriple<String, String,
+                        ConsoleLoop.Handler>("id", "list page by id", new ConsoleLoop.Handler() {
+                    @Override
+                    public void handle(String input) throws IOException {
+                        Page page = wikipedia.getPageById(NumberUtils.toInt
+                                (input));
+                        System.out.println(page);
+                        if (page != null) {
+                            System.out.println(page.getContent());
+                        }
+                    }
+                }),new ImmutableTriple<String, String,
+                                ConsoleLoop.Handler>("list", "list all",
+                                new ConsoleLoop.Handler() {
+                            @Override
+                            public void handle(String input) throws IOException {
+                                PageIterator it = wikipedia.getPageIterator();
+                                Scanner scanner = new Scanner(System.in);
+                                while (it.hasNext()) {
+                                    Page page = it.next();
+                                    System.out.println(page);
+                                    if (page.getContent().length() > 200) {
+                                        System.out.println(page.getContent().substring(0, 200));
+                                    } else {
+                                        System.out.println(page.getContent());
+                                    }
 
-				System.out.println("type exit to return, or enter to continue");
-				String command = scanner.nextLine();
-				if (command.equalsIgnoreCase("exit")) {
-					break;
-				}
-			}
-			it.close();
-		}
+                                    System.out.println("type exit to return, or enter to continue");
+                                    String command = scanner.nextLine();
+                                    if (command.equalsIgnoreCase("exit")) {
+                                        break;
+                                    }
+                                }
+                                it.close();
+                            }
+                        })
+                );
+                break;
+            case "articleByTitle":
+                ConsoleLoop.loop(new ImmutableTriple<String, String,
+                                ConsoleLoop.Handler>("title", "get id by " +
+                                "title", new ConsoleLoop.Handler() {
+                            @Override
+                            public void handle(String input) throws IOException {
+                                Integer id = wikipedia.getIdByArticleTitle
+                                        (input);
+                                System.out.println(id);
+                            }
+                        }),new ImmutableTriple<String, String,
+                                ConsoleLoop.Handler>("list", "list all",
+                                new ConsoleLoop.Handler() {
+                                    @Override
+                                    public void handle(String input) throws IOException {
+                                        TitleIterator it = wikipedia
+                                                .getArticleTitleIterator();
+                                        Scanner scanner = new Scanner(System.in);
+                                        while (it.hasNext()) {
+                                            WEntry<String, Integer> entry = it.next();
+                                            System.out.println("\t" + entry.getKey()
+                                                    + "\t" + entry.getValue());
+
+                                            System.out.println("type exit to return, or enter to continue");
+                                            String command = scanner.nextLine();
+                                            if (command.equalsIgnoreCase("exit")) {
+                                                break;
+                                            }
+                                        }
+                                        it.close();
+                                    }
+                                })
+                );
+                break;
+            case "categoryByTitle":
+                ConsoleLoop.loop(new ImmutableTriple<String, String,
+                                ConsoleLoop.Handler>("title", "get id by " +
+                                "title", new ConsoleLoop.Handler() {
+                            @Override
+                            public void handle(String input) throws IOException {
+                                Integer id = wikipedia.getIdByCategoryTitle(input);
+                                System.out.println(id);
+                            }
+                        }),new ImmutableTriple<String, String,
+                                ConsoleLoop.Handler>("list", "list all",
+                                new ConsoleLoop.Handler() {
+                                    @Override
+                                    public void handle(String input) throws IOException {
+                                        TitleIterator it = wikipedia
+                                                .getCategoryTitleIterator();
+                                        Scanner scanner = new Scanner(System.in);
+                                        while (it.hasNext()) {
+                                            WEntry<String, Integer> entry = it.next();
+                                            System.out.println("\t" + entry.getKey()
+                                                    + "\t" + entry.getValue());
+
+                                            System.out.println("type exit to return, or enter to continue");
+                                            String command = scanner.nextLine();
+                                            if (command.equalsIgnoreCase("exit")) {
+                                                break;
+                                            }
+                                        }
+                                        it.close();
+                                    }
+                                })
+                );
+                break;
+        };
+
 		wikipedia.close();
 	}
 }
