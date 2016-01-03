@@ -1,5 +1,9 @@
 # wikit --- Wikipedia toolkit
-An open source toolkit for mining Wikipedia
+一个开源的维基百科挖掘分析工具，集成了维基百科数据的解析、变换、存储和部分语义分析功能，已经实现的功能有：
+
+1. 显性语义分析(clone 来源待补充)
+2. 层次语义路径识别/显性语义路径挖掘
+3. 链接相似度计算
 
 # 如何运行
 下面仅以Ubuntu系统为例，说明项目如何运行。

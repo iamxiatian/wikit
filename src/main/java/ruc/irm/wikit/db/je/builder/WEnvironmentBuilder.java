@@ -32,7 +32,7 @@ public class WEnvironmentBuilder {
     public void build(Conf conf) throws IOException {
         WikiPageDump dump = new PageXmlDump(conf);
 
-        WEnvironment env = new WEnvironment(conf);
+        WEnvironment env = new WEnvironment(conf, true, false);
 
         TitleDbFilter articleTitleDbFilter = new TitleDbFilter(env,
                 DatabaseType.articlesByTitle, overwrite);

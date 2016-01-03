@@ -33,13 +33,29 @@ public class WEnvironment {
 
 	private HashMap<DatabaseType, WDatabase> databasesByType;
 
-	public WEnvironment(Conf conf) throws
+    /**
+     * Open Berkeley DB environment with readonly mode.
+     *
+     * @param conf
+     * @throws EnvironmentLockedException
+     */
+    public WEnvironment(Conf conf) throws
+            EnvironmentLockedException {
+        this(conf, false, true);
+    }
+
+    /**
+     * When update database, use this constructor with allowCreate=true and
+     * readOnly=false, otherwise please use WEnvironment(Conf conf)
+     *
+     */
+	public WEnvironment(Conf conf, boolean allowCreate, boolean readOnly) throws
 			EnvironmentLockedException {
 		this.conf = conf;
 		EnvironmentConfig envConf = new EnvironmentConfig() ;
 		envConf.setCachePercent(10);
-		envConf.setAllowCreate(true) ;
-		envConf.setReadOnly(false) ;
+		envConf.setAllowCreate(allowCreate) ;
+		envConf.setReadOnly(readOnly) ;
 
         System.out.println("berkeley db path:" + conf.get("berkeley.db.dir"));
         File envDir = new File(conf.get("berkeley.db.dir", "bdb"));
