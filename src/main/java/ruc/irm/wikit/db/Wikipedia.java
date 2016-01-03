@@ -32,6 +32,7 @@ import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.db.je.WDatabase;
 import ruc.irm.wikit.db.je.WEntry;
 import ruc.irm.wikit.db.je.WEnvironment;
+import ruc.irm.wikit.db.je.WIterator;
 import ruc.irm.wikit.db.je.it.PageIterator;
 import ruc.irm.wikit.db.je.it.TitleIterator;
 import ruc.irm.wikit.model.Page;
@@ -98,16 +99,16 @@ public class Wikipedia {
         return env.getDbArticlesByTitle().retrieve(title);
     }
 
-    public TitleIterator getArticleTitleIterator() {
-        return new TitleIterator(env, articlesByTitle) ;
+    public WIterator<String, Integer> getArticleTitleIterator() {
+        return env.getDbArticlesByTitle().getIterator();
     }
 
     public Integer getIdByCategoryTitle(String title) {
         return env.getDbCategoriesByTitle().retrieve(title);
     }
 
-    public TitleIterator getCategoryTitleIterator() {
-        return new TitleIterator(env, categoriesByTitle) ;
+    public WIterator<String, Integer> getCategoryTitleIterator() {
+        return env.getDbCategoriesByTitle().getIterator();
     }
 
     /**
@@ -187,8 +188,8 @@ public class Wikipedia {
                 break;
             case "articleByTitle":
                 ConsoleLoop.loop(new ImmutableTriple<String, String,
-                                ConsoleLoop.Handler>("title", "get id by " +
-                                "title", new ConsoleLoop.Handler() {
+                                ConsoleLoop.Handler>("title", "input title " +
+                                "and return its id", new ConsoleLoop.Handler() {
                             @Override
                             public void handle(String input) throws IOException {
                                 Integer id = wikipedia.getIdByArticleTitle
@@ -196,22 +197,25 @@ public class Wikipedia {
                                 System.out.println(id);
                             }
                         }),new ImmutableTriple<String, String,
-                                ConsoleLoop.Handler>("list", "list all",
+                                ConsoleLoop.Handler>("list", "list all " +
+                                "article title and its id",
                                 new ConsoleLoop.Handler() {
                                     @Override
                                     public void handle(String input) throws IOException {
-                                        TitleIterator it = wikipedia
-                                                .getArticleTitleIterator();
-                                        Scanner scanner = new Scanner(System.in);
+                                        WIterator<String, Integer> it = wikipedia.getArticleTitleIterator();
+                                        int count = 0;
                                         while (it.hasNext()) {
                                             WEntry<String, Integer> entry = it.next();
                                             System.out.println("\t" + entry.getKey()
                                                     + "\t" + entry.getValue());
 
-                                            System.out.println("type exit to return, or enter to continue");
-                                            String command = scanner.nextLine();
-                                            if (command.equalsIgnoreCase("exit")) {
-                                                break;
+                                            count++;
+                                            if(count%20==0) {
+                                                System.out.println("type exit to return, or enter to continue");
+                                                String command = new Scanner(System.in).nextLine();
+                                                if (command.equalsIgnoreCase("exit")) {
+                                                    break;
+                                                }
                                             }
                                         }
                                         it.close();
@@ -228,23 +232,26 @@ public class Wikipedia {
                                 Integer id = wikipedia.getIdByCategoryTitle(input);
                                 System.out.println(id);
                             }
-                        }),new ImmutableTriple<String, String,
+                        }), new ImmutableTriple<String, String,
                                 ConsoleLoop.Handler>("list", "list all",
                                 new ConsoleLoop.Handler() {
                                     @Override
                                     public void handle(String input) throws IOException {
-                                        TitleIterator it = wikipedia
-                                                .getCategoryTitleIterator();
-                                        Scanner scanner = new Scanner(System.in);
+                                        WIterator<String, Integer> it =
+                                                wikipedia.getCategoryTitleIterator();
+                                        int count = 0;
                                         while (it.hasNext()) {
                                             WEntry<String, Integer> entry = it.next();
                                             System.out.println("\t" + entry.getKey()
                                                     + "\t" + entry.getValue());
 
-                                            System.out.println("type exit to return, or enter to continue");
-                                            String command = scanner.nextLine();
-                                            if (command.equalsIgnoreCase("exit")) {
-                                                break;
+                                            count++;
+                                            if (count % 20 == 0) {
+                                                System.out.println("type exit to return, or enter to continue");
+                                                String command = new Scanner(System.in).nextLine();
+                                                if (command.equalsIgnoreCase("exit")) {
+                                                    break;
+                                                }
                                             }
                                         }
                                         it.close();

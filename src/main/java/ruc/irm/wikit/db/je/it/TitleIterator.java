@@ -2,6 +2,8 @@ package ruc.irm.wikit.db.je.it;
 
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.db.je.WDatabase;
 import ruc.irm.wikit.db.je.WEntry;
 import ruc.irm.wikit.db.je.WEnvironment;
@@ -16,7 +18,7 @@ import java.util.NoSuchElementException;
  * Provides efficient iteration over the labels in Wikipedia
  */
 public class TitleIterator implements Iterator<WEntry<String, Integer>>{
-
+	private static final Logger LOG = LoggerFactory.getLogger(TitleIterator.class);
 
 	WEnvironment env ;
 	WIterator<String,Integer> iter ;
@@ -28,6 +30,7 @@ public class TitleIterator implements Iterator<WEntry<String, Integer>>{
 		this.env = env ;
 		if(type== WDatabase.DatabaseType.articlesByTitle) {
 			iter = env.getDbArticlesByTitle().getIterator();
+			System.out.println(iter.next());
 		} else if (type == WDatabase.DatabaseType.categoriesByTitle) {
 			iter = env.getDbCategoriesByTitle().getIterator();
 		}
@@ -61,7 +64,9 @@ public class TitleIterator implements Iterator<WEntry<String, Integer>>{
 
 		try {
 			WEntry<String,Integer> nextPair = iter.next();
+			iter.hasNext();
 		} catch (NoSuchElementException e) {
+			LOG.error("queueNext error.", e);
 			nextPair = null ;
 		}
 	}
