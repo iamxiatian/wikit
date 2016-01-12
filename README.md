@@ -36,3 +36,4 @@ David Milne, Ian H. Witten. An open-source toolkit for mining Wikipedia.
 Project
 --------------
 Wikipedia-Miner
+JWPL: https://www.ukp.tu-darmstadt.de/software/jwpl/

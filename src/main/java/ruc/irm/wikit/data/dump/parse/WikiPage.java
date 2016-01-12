@@ -1,5 +1,6 @@
 package ruc.irm.wikit.data.dump.parse;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import de.tudarmstadt.ukp.wikipedia.parser.Link;
 import de.tudarmstadt.ukp.wikipedia.parser.Paragraph;
@@ -18,9 +19,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,7 +46,7 @@ public class WikiPage {
 
 
     private String plainText = null;
-    private Set<String> internalLinks = null;
+    private List<String> internalLinks = null;
     private Set<String> categories = null;
 
     /** 网页的别名，指向当前网页的redirect网页名称集合, 由于处理的需要，初始值设为空，
@@ -149,7 +148,7 @@ public class WikiPage {
     }
 
     public void drillMoreInfo() {
-        internalLinks = new HashSet<>();
+        internalLinks = new ArrayList<>();
         categories = new HashSet<>();
         if(!isArticle() && !isCategory()) return;
 
@@ -178,6 +177,7 @@ public class WikiPage {
         MediaWikiParserFactory pf = new MediaWikiParserFactory();
         MediaWikiParser parser = pf.createParser();
         ParsedPage pp = parser.parse(text);
+
         if (pp == null) {
             plainText = "";
             System.out.println("text parse error: id==>" + id + ", title==>" + title + ", ns==>" + ns + ", content==>" + text);
@@ -267,11 +267,11 @@ public class WikiPage {
         this.aliases = aliases;
     }
 
-    public Set<String> getInternalLinks() {
+    public List<String> getInternalLinks() {
         return this.internalLinks;
     }
 
-    public void setInternalLinks(Set<String> internalLinks) {
+    public void setInternalLinks(List<String> internalLinks) {
         this.internalLinks = internalLinks;
     }
 
@@ -294,8 +294,8 @@ public class WikiPage {
         wikiPage.setText(GZipUtils.unzip((byte[]) record.get("text"), "utf-8"));
         wikiPage.setFormat(record.getString("format"));
         wikiPage.setRedirect(record.getString("redirect"));
-        wikiPage.setInternalLinks(Sets.newConcurrentHashSet(
-                (Collection<String >)record.get("links")));
+        wikiPage.setInternalLinks(Lists.newArrayList(
+                (Collection<String>) record.get("links")));
         return wikiPage;
     }
 
@@ -390,7 +390,7 @@ public class WikiPage {
             page.aliases = aliases;
 
 
-            Set<String> links = new HashSet<>();
+            List<String> links = new ArrayList<>();
             size = dis.readInt();
             for (int i = 0; i < size; i++) {
                 links.add(dis.readUTF());
