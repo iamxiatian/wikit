@@ -26,6 +26,22 @@
 
         $ ./run.py ESAModel -c expt/conf/chinese.xml
 
+#怎么构建ESA模型(以中文数据为例)
+1. 下载维基百科导出数据，如zhwiki-20150602-pages-articles-multistream
+2. 修改expt/conf/conf-chinese.xml,调整里面的文件路径参数，假设数据都保存在~/esa/chinese目录下
+3. 运行redis-server
+4. 编译代码后运行PageSequenceDump，过滤低质量的维基数据，形成新的数据文件
+
+        $./run.py PageSequenceDump -c expt/conf/conf-chinese.xml -ba
+        
+5. 训练生成ESA模型
+
+        $./run.py ESAModelBuilder -c expt/conf/conf-chinese.xml -build
+        
+6. 测试ESA模型
+        
+        $./run.py ESAModel -c expt/conf/conf-chinese.xml -lookup
+        
 
 # Reference
 

@@ -14,6 +14,7 @@ import ruc.irm.wikit.util.text.analysis.ESAAnalyzer;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 /**
@@ -24,6 +25,52 @@ import java.util.Scanner;
  * Time: 12:36 PM
  */
 public interface ESAModel {
+
+    static void lookupCommand(ESAModel model, Conf conf) throws IOException,
+            WikitException {
+        String text = null;
+        Scanner scanner = new Scanner(System.in);
+
+        ESAAnalyzer analyzer = new ESAAnalyzer(conf);
+        ConceptCache cache = new ConceptCacheRedisImpl(conf);
+
+        System.out.print(">>>");
+        while ((text = scanner.nextLine()) != null) {
+            if (text.equalsIgnoreCase("exit")) {
+                System.out.println("Bye!");
+                break;
+            }
+
+            //output tokens extracted from text
+            TokenStream tokenStream = analyzer.tokenStream("contents", new StringReader(text));
+            tokenStream.reset();
+            while (tokenStream.incrementToken()) {
+                CharTermAttribute t = tokenStream.getAttribute(CharTermAttribute.class);
+                String term = t.toString();
+                System.out.print(term + " ");
+            }
+            System.out.println();
+
+            ConceptVector cv = model.getCombinedVector(text, 50);
+            if (cv == null) {
+                System.out.println("No valid concept");
+            } else {
+                ConceptIterator it = cv.orderedIterator();
+                int count = 0;
+                while (it.next() && count < 200) {
+                    count++;
+                    int id = it.getId();
+                    String outId = cache.getOutIdById(it.getId());
+                    double value = it.getValue();
+
+                    System.out.println(count + "\t" + cache.getNameById(id) +
+                            "\t\t" + outId + "/" + value);
+                }
+            }
+            System.out.print(">>>");
+        }
+    }
+
     public static void main(String[] args)
             throws ParseException,
             WikitException,
@@ -34,7 +81,6 @@ public interface ESAModel {
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
         options.addOption(new Option("c", true, "config file"));
-        options.addOption(new Option("build", false, "Build ESA model."));
         options.addOption(new Option("lookup", false, "Lookup concepts for " +
                 "given text."));
 
@@ -48,69 +94,35 @@ public interface ESAModel {
 
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         ESAModel model = new ESAModelImpl(conf);
-        ConceptCache cache = new ConceptCacheRedisImpl(conf);
 
         String text = null;
+        try {
+            if (commandLine.hasOption("lookup")) {
+                lookupCommand(model, conf);
+            } else if (commandLine.hasOption("rd")) {
+                Scanner scanner = new Scanner(System.in);
 
-        if(commandLine.hasOption("lookup")) {
-            Scanner scanner = new Scanner(System.in);
+                ESAAnalyzer analyzer = new ESAAnalyzer(conf);
 
-            ESAAnalyzer analyzer = new ESAAnalyzer(conf);
-            System.out.print(">>>");
-            while ((text = scanner.nextLine()) != null) {
-                if (text.equalsIgnoreCase("exit")) {
-                    System.out.println("Bye!");
-                    break;
-                }
+                while (true) {
+                    System.out.print("Input 1st text:");
+                    String text1 = scanner.nextLine();
+                    System.out.print("Input 2nd text:");
+                    String text2 = scanner.nextLine();
 
-                //output tokens extracted from text
-                TokenStream tokenStream = analyzer.tokenStream("contents", new StringReader(text));
-                tokenStream.reset();
-                while (tokenStream.incrementToken()) {
-                    CharTermAttribute t = tokenStream.getAttribute(CharTermAttribute.class);
-                    String term = t.toString();
-                    System.out.print(term + " ");
-                }
-                System.out.println();
-
-                ConceptVector cv = model.getCombinedVector(text, 50);
-                if (cv == null) {
-                    System.out.println("No valid concept");
-                } else {
-                    ConceptIterator it = cv.orderedIterator();
-                    int count = 0;
-                    while (it.next() && count < 200) {
-                        count++;
-                        int id = it.getId();
-                        String outId = cache.getOutIdById(it.getId());
-                        double value = it.getValue();
-
-                        System.out.println(count + "\t" + cache.getNameById(id) +
-                                "\t\t" + outId + "/" + value);
+                    if (text1.equalsIgnoreCase("exit") || text2.equalsIgnoreCase
+                            ("exit")) {
+                        System.out.println("Bye!");
+                        break;
                     }
+                    double relatedness = model.getRelatedness(text1, text2);
+                    System.out.println("Relatedness is " + relatedness);
                 }
-                System.out.print(">>>");
             }
-        } else if (commandLine.hasOption("rd")) {
-            Scanner scanner = new Scanner(System.in);
+        } catch (NoSuchElementException e) {
 
-            ESAAnalyzer analyzer = new ESAAnalyzer(conf);
-
-            while (true) {
-                System.out.print("Input 1st text:");
-                String text1 = scanner.nextLine();
-                System.out.print("Input 2nd text:");
-                String text2 = scanner.nextLine();
-
-                if (text1.equalsIgnoreCase("exit") || text2.equalsIgnoreCase
-                        ("exit")) {
-                    System.out.println("Bye!");
-                    break;
-                }
-                double relatedness = model.getRelatedness(text1, text2);
-                System.out.println("Relatedness is " + relatedness);
-            }
         }
+        System.out.println("Bye!");
     }
 
     /**
