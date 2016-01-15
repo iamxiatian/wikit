@@ -18,12 +18,101 @@ import java.util.Scanner;
 
 /**
  * ESA model, provide the core method of ESA
- *
+ * <p>
  * User: xiatian
  * Date: 7/5/14
  * Time: 12:36 PM
  */
 public interface ESAModel {
+    public static void main(String[] args)
+            throws ParseException,
+            WikitException,
+            IOException {
+        String helpMsg = "usage: ESAModel -c config.xml";
+
+        HelpFormatter helpFormatter = new HelpFormatter();
+        CommandLineParser parser = new PosixParser();
+        Options options = new Options();
+        options.addOption(new Option("c", true, "config file"));
+        options.addOption(new Option("build", false, "Build ESA model."));
+        options.addOption(new Option("lookup", false, "Lookup concepts for " +
+                "given text."));
+
+        options.addOption(new Option("rd", false, "Test relatedness"));
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (!commandLine.hasOption("c")) {
+            helpFormatter.printHelp(helpMsg, options);
+            return;
+        }
+
+        Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
+        ESAModel model = new ESAModelImpl(conf);
+        ConceptCache cache = new ConceptCacheRedisImpl(conf);
+
+        String text = null;
+
+        if(commandLine.hasOption("lookup")) {
+            Scanner scanner = new Scanner(System.in);
+
+            ESAAnalyzer analyzer = new ESAAnalyzer(conf);
+            System.out.print(">>>");
+            while ((text = scanner.nextLine()) != null) {
+                if (text.equalsIgnoreCase("exit")) {
+                    System.out.println("Bye!");
+                    break;
+                }
+
+                //output tokens extracted from text
+                TokenStream tokenStream = analyzer.tokenStream("contents", new StringReader(text));
+                tokenStream.reset();
+                while (tokenStream.incrementToken()) {
+                    CharTermAttribute t = tokenStream.getAttribute(CharTermAttribute.class);
+                    String term = t.toString();
+                    System.out.print(term + " ");
+                }
+                System.out.println();
+
+                ConceptVector cv = model.getCombinedVector(text, 50);
+                if (cv == null) {
+                    System.out.println("No valid concept");
+                } else {
+                    ConceptIterator it = cv.orderedIterator();
+                    int count = 0;
+                    while (it.next() && count < 200) {
+                        count++;
+                        int id = it.getId();
+                        String outId = cache.getOutIdById(it.getId());
+                        double value = it.getValue();
+
+                        System.out.println(count + "\t" + cache.getNameById(id) +
+                                "\t\t" + outId + "/" + value);
+                    }
+                }
+                System.out.print(">>>");
+            }
+        } else if (commandLine.hasOption("rd")) {
+            Scanner scanner = new Scanner(System.in);
+
+            ESAAnalyzer analyzer = new ESAAnalyzer(conf);
+
+            while (true) {
+                System.out.print("Input 1st text:");
+                String text1 = scanner.nextLine();
+                System.out.print("Input 2nd text:");
+                String text2 = scanner.nextLine();
+
+                if (text1.equalsIgnoreCase("exit") || text2.equalsIgnoreCase
+                        ("exit")) {
+                    System.out.println("Bye!");
+                    break;
+                }
+                double relatedness = model.getRelatedness(text1, text2);
+                System.out.println("Relatedness is " + relatedness);
+            }
+        }
+    }
+
     /**
      * Get the concept vector to represents current text.
      *
@@ -34,6 +123,7 @@ public interface ESAModel {
 
     /**
      * Trim vector to keep only most important top LIMIT concepts
+     *
      * @param cv
      * @param LIMIT
      * @return
@@ -49,11 +139,12 @@ public interface ESAModel {
      * @return
      * @throws java.sql.SQLException
      */
-    public ConceptVector getLinkVector(ConceptVector cv, double ALPHA, int limit) ;
+    public ConceptVector getLinkVector(ConceptVector cv, double ALPHA, int limit);
 
     /**
      * computes secondary interpretation vector of regular features by links
      * with default ALPHA parameter(0.5)
+     *
      * @param cv
      * @param limit
      * @return
@@ -67,6 +158,7 @@ public interface ESAModel {
 
     /**
      * Get concept vector and take link relationship into account, return top limit concepts.
+     *
      * @param text
      * @param limit
      * @return
@@ -74,63 +166,8 @@ public interface ESAModel {
      */
     public ConceptVector getCombinedVector(String text, int limit) throws WikitException;
 
-    public static void main(String[] args) throws ParseException, WikitException, IOException {
-        String helpMsg = "usage: ESAModel -c config.xml";
-
-        HelpFormatter helpFormatter = new HelpFormatter();
-        CommandLineParser parser = new PosixParser();
-        Options options = new Options();
-        options.addOption(new Option("c", true, "config file"));
-        options.addOption(new Option("build", false, "Build ESA model."));
-
-        CommandLine commandLine = parser.parse(options, args);
-        if (!commandLine.hasOption("c")) {
-            helpFormatter.printHelp(helpMsg, options);
-            return;
-        }
-
-        Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
-        ESAModel model = new ESAModelImpl(conf);
-        ConceptCache cache = new ConceptCacheRedisImpl(conf);
-
-        String text = null;
-        Scanner scanner = new Scanner(System.in);
-
-        ESAAnalyzer analyzer = new ESAAnalyzer(conf);
-        System.out.print(">>>");
-        while ((text = scanner.nextLine()) != null) {
-            if (text.equalsIgnoreCase("exit")) {
-                System.out.println("Bye!");
-                break;
-            }
-
-            //output tokens extracted from text
-            TokenStream tokenStream = analyzer.tokenStream("contents", new StringReader(text));
-            tokenStream.reset();
-            while (tokenStream.incrementToken()) {
-                CharTermAttribute t = tokenStream.getAttribute(CharTermAttribute.class);
-                String term = t.toString();
-                System.out.print(term + " ");
-            }
-            System.out.println();
-
-            ConceptVector cv = model.getCombinedVector(text, 50);
-            if (cv == null) {
-                System.out.println("No valid concept");
-            } else {
-                ConceptIterator it = cv.orderedIterator();
-                int count = 0;
-                while (it.next() && count<200) {
-                    count++;
-                    int id = it.getId();
-                    String outId = cache.getOutIdById(it.getId());
-                    double value = it.getValue();
-
-                    System.out.println(count + "\t" + cache.getNameById(id) +
-                            "\t\t" + outId + "/" + value);
-                }
-            }
-            System.out.print(">>>");
-        }
-    }
+    /**
+     * Calculate semantic relatedness between two texts
+     */
+    public double getRelatedness(String text1, String text2);
 }

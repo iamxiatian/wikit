@@ -393,6 +393,7 @@ public class ESAModelImpl implements ESAModel, Closeable {
      * @param doc2
      * @return returns relatedness if successful, -1 otherwise
      */
+    @Override
     public double getRelatedness(String doc1, String doc2) {
         try {
             ConceptVector c1 = getCombinedVector(doc1);
