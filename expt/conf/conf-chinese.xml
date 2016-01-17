@@ -75,13 +75,13 @@
 
     <property>
         <name>esa.model.title.boost</name>
-        <value>1.5</value>
+        <value>1.8</value>
         <description>Boost title field when build ESA model(see IndexMining class)</description>
     </property>
 
     <property>
         <name>wiki.stop.filter.min.links</name>
-        <value>10</value>
+        <value>5</value>
         <description>If a wiki page's inlink and outlink count is less than
             this property, then remove it to construct esa model
             .</description>
@@ -89,7 +89,7 @@
 
     <property>
         <name>wiki.stop.filter.min.words</name>
-        <value>100</value>
+        <value>50</value>
         <description>If a wiki page's no stop words is less than this
             property, then remove it.</description>
     </property>

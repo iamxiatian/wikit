@@ -1,0 +1,5 @@
+李天一 nr  10
+李双江 nr  10
+彭丽媛 nr  100
+习近平 nr  100
+#wiki words below

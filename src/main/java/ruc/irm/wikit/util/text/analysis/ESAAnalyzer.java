@@ -1,5 +1,7 @@
 package ruc.irm.wikit.util.text.analysis;
 
+import com.hankcs.hanlp.HanLP;
+import org.apache.commons.cli.*;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
@@ -9,14 +11,23 @@ import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.apache.lucene.analysis.miscellaneous.LengthFilter;
 import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
+import ruc.irm.wikit.common.conf.ConfFactory;
+import ruc.irm.wikit.esa.ESAModelImpl;
+import ruc.irm.wikit.esa.concept.ConceptCache;
+import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
+import ruc.irm.wikit.esa.concept.vector.ConceptIterator;
+import ruc.irm.wikit.esa.concept.vector.ConceptVector;
+import ruc.irm.wikit.util.ConsoleLoop;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Scanner;
 import java.util.Set;
 
 
@@ -81,11 +92,45 @@ public class ESAAnalyzer extends Analyzer {
             //filter = new ESAIndexFilter(Config.LUCENE_VERSION, filter);
             filter = new LowerCaseFilter(Conf.LUCENE_VERSION, filter);
             filter = new StopFilter(Conf.LUCENE_VERSION, filter, ENGLISH_STOP_WORDS_SET);
-            filter = new LengthFilter(Conf.LUCENE_VERSION, filter, 2, 50);
+            filter = new LengthFilter(Conf.LUCENE_VERSION, filter, 2, 20);
             filter = new ESAIndexFilter(Conf.LUCENE_VERSION, filter);
 
             return new TokenStreamComponents(tokenizer, filter);
         }
     }
 
+    public static void main(String[] args) throws ParseException {
+        String helpMsg = "usage: ESAAnalyzer -c config.xml";
+
+        HelpFormatter helpFormatter = new HelpFormatter();
+        CommandLineParser parser = new PosixParser();
+        Options options = new Options();
+        options.addOption(new Option("c", true, "config file"));
+        CommandLine commandLine = parser.parse(options, args);
+        if (!commandLine.hasOption("c")) {
+            helpFormatter.printHelp(helpMsg, options);
+            return;
+        }
+
+        Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
+        ESAAnalyzer analyzer = new ESAAnalyzer(conf);
+
+        ConsoleLoop.loop(new ConsoleLoop.Handler() {
+            @Override
+            public void handle(String text) throws IOException {
+                System.out.println("Segment result:" + HanLP.segment(text));
+                System.out.print("Token result:");
+                TokenStream tokenStream = analyzer.tokenStream("contents", new StringReader(text));
+                tokenStream.reset();
+                while (tokenStream.incrementToken()) {
+                    CharTermAttribute t = tokenStream.getAttribute(CharTermAttribute.class);
+                    String term = t.toString();
+                    System.out.print(term + " ");
+                }
+                tokenStream.close();
+                System.out.println();
+            }
+        });
+
+    }
 }

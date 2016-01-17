@@ -48,7 +48,7 @@ dependencies {
             'commons-jxpath:commons-jxpath:1.3',
             'info.bliki.wiki:bliki-core:3.0.19', //wiki
             'de.tudarmstadt.ukp.dkpro.core:de.tudarmstadt.ukp.dkpro.core.io.jwpl-asl:1.5.0', //wiki process
-            'com.hankcs:hanlp:portable-1.2.4',
+            'com.hankcs:hanlp:portable-1.2.8',
             'org.apache.opennlp:opennlp-tools:1.5.3',
             'org.ahocorasick:ahocorasick:0.3.0',
             'edu.ucla.sspace:sspace:2.0.4',

@@ -93,7 +93,7 @@
 
     <property>
         <name>esa.model.title.boost</name>
-        <value>1.0</value>
+        <value>1.2</value>
         <description>Boost title field when build ESA model(see IndexMining class)</description>
     </property>
 

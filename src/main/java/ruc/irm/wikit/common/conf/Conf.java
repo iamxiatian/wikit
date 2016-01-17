@@ -1,10 +1,16 @@
 package ruc.irm.wikit.common.conf;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import com.hankcs.hanlp.dictionary.CustomDictionary;
 import org.apache.lucene.util.Version;
 import ruc.irm.wikit.common.exception.WikitException;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,6 +20,29 @@ import java.util.Map;
  */
 public class Conf extends Configuration {
     public static final Version LUCENE_VERSION = Version.LUCENE_47;
+
+    static {
+        System.out.println("Loading user defined words for segment.");
+        try {
+            List<String> lines = Resources.readLines(Conf.class.getResource
+                    ("/dict/words.txt"), Charsets.UTF_8);
+            for (String line : lines) {
+                if (line.startsWith("#") || line.trim().length()==0) {
+                    continue;
+                }
+                int pos = line.indexOf("\t");
+                if(pos>0) {
+                    String word = line.substring(0, pos);
+                    String info = line.substring(pos + 1);
+                    CustomDictionary.add(word, info);
+                } else {
+                    CustomDictionary.add(line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private Map<String, String> params = new HashMap<>();
 

@@ -67,6 +67,7 @@ public interface ESAModel {
                             "\t\t" + outId + "/" + value);
                 }
             }
+            tokenStream.close();
             System.out.print(">>>");
         }
     }

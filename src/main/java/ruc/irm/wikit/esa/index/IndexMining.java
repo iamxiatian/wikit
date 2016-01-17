@@ -1,9 +1,15 @@
 package ruc.irm.wikit.esa.index;
 
+import com.google.common.primitives.Chars;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 import gnu.trove.map.hash.TIntFloatHashMap;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
@@ -11,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.util.HeapSort;
+import ruc.irm.wikit.util.text.analysis.ESAAnalyzer;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -41,14 +48,16 @@ public class IndexMining {
     private File vectorFileName = null;
     private File sortedVectorFileName = null;
 
+    private Analyzer analyzer = null;
     private IndexReader reader = null;
+    private IndexSearcher searcher = null;
 
     private static TIntDoubleHashMap inlinkMap;
 
     private static int WINDOW_SIZE = 100;
     private static float WINDOW_THRES = 0.005f;
     private static DecimalFormat decimalFormat = new DecimalFormat("#.#######");
-    private float tfidfBoost = 1.2f;
+    private float tfidfBoost = 1.5f;
 
     private Conf conf = null;
     public IndexMining(Conf conf) {
@@ -60,12 +69,14 @@ public class IndexMining {
         this.vectorFileName = new File(conf.getEsaModelDir(), "vector.txt");
         this.sortedVectorFileName = new File(conf.getEsaModelDir(), "vector.sorted.txt");
         this.vectorFileName.getParentFile().mkdirs();
-        this.tfidfBoost = conf.getFloat("esa.model.title.boost", 1.2f);
+        this.tfidfBoost = conf.getFloat("esa.model.title.boost", 1.5f);
     }
 
 
     public void open() throws IOException {
+        this.analyzer = new ESAAnalyzer(conf);
         this.reader = DirectoryReader.open(FSDirectory.open(new File(conf.getEsaIndexDir())));
+        this.searcher = new IndexSearcher(reader);
     }
 
 
@@ -75,6 +86,8 @@ public class IndexMining {
         }
     }
 
+    private static final char[] SPECIAL_CHARS = new char[]{'.', '"', '\'',
+            ']', '[', '%', '@', '!', '}', '{', '|'} ;
     public void modify() throws IOException {
         //maintain the term name and index number mapping
         HashMap<String, Integer> termHash = new HashMap<String, Integer>(500000);
@@ -98,10 +111,30 @@ public class IndexMining {
         int hashInt = 0;
         while((text = termsEnum.next()) != null) {
             String term = text.utf8ToString();
+            //如果term全为特殊符号，则滤掉
+            boolean skipped = true;
+            for (int i = 0; i < term.length(); i++) {
+                if(!Chars.contains(SPECIAL_CHARS, term.charAt(i))){
+                    skipped = false;
+                    break;
+                }
+            }
+            if(skipped) continue;
+
             //get DF for the term
             int docFreq = termsEnum.docFreq();
+            //如果docFreq比较小，并且没有出现在标题中，则过滤掉
             if (docFreq <= 5) {    // skip rare terms
-                continue;
+                int hits = 0;
+                try {
+                    QueryParser parser = new QueryParser(Conf.LUCENE_VERSION, "title",
+                        analyzer);
+                    Query titleQuery = parser.parse(term);
+                    hits = searcher.search(titleQuery, 5).totalHits;
+                } catch (ParseException e) {
+                    //e.printStackTrace();
+                }
+                if(hits==0) continue;
             }
 
             float idf = (float) (Math.log(numDocs / (double) (docFreq)));
