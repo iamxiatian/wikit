@@ -82,6 +82,7 @@
     <property>
         <name>wiki.stop.filter.min.links</name>
         <value>5</value>
+        <final>true</final>
         <description>If a wiki page's inlink and outlink count is less than
             this property, then remove it to construct esa model
             .</description>
@@ -90,6 +91,7 @@
     <property>
         <name>wiki.stop.filter.min.words</name>
         <value>50</value>
+        <final>true</final>
         <description>If a wiki page's no stop words is less than this
             property, then remove it.</description>
     </property>

@@ -64,6 +64,18 @@ public class ESAAnalyzer extends Analyzer {
             LOG.error("Init ESAAnalyzer error.", e);
         }
 
+        stopWords.add("的");
+        stopWords.add("了");
+        stopWords.add("吗");
+        stopWords.add("啊");
+        stopWords.add("？");
+        stopWords.add("，");
+        stopWords.add("。");
+        stopWords.add("！");
+        stopWords.add("；");
+        stopWords.add("、");
+
+
         final CharArraySet stopSet = new CharArraySet(Conf.LUCENE_VERSION, stopWords.size(), false);
         stopSet.addAll(stopWords);
         ENGLISH_STOP_WORDS_SET = CharArraySet.unmodifiableSet(stopSet);
@@ -92,7 +104,7 @@ public class ESAAnalyzer extends Analyzer {
             //filter = new ESAIndexFilter(Config.LUCENE_VERSION, filter);
             filter = new LowerCaseFilter(Conf.LUCENE_VERSION, filter);
             filter = new StopFilter(Conf.LUCENE_VERSION, filter, ENGLISH_STOP_WORDS_SET);
-            filter = new LengthFilter(Conf.LUCENE_VERSION, filter, 2, 20);
+            //filter = new LengthFilter(Conf.LUCENE_VERSION, filter, 2, 20);
             filter = new ESAIndexFilter(Conf.LUCENE_VERSION, filter);
 
             return new TokenStreamComponents(tokenizer, filter);

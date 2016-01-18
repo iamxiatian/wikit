@@ -50,12 +50,12 @@ public class FirstStopFilter implements WikiPageFilter {
     /**
      * minimum non-stop words for valid wiki page
      */
-    private int minWords = 200;
+    private int minWords = 50;
 
     public FirstStopFilter(Conf conf) throws IOException {
         this.conf = conf;
         analyzer = new ESAAnalyzer(conf);
-        this.minWords = conf.getInt("wiki.stop.filter.min.words", 200);
+        this.minWords = conf.getInt("wiki.stop.filter.min.words", 50);
 
         File gzSeqFile = new File(conf.get("wiki.dump.file.seq1", "seq1.gz"));
         if (!gzSeqFile.getParentFile().exists()) {
@@ -105,20 +105,22 @@ public class FirstStopFilter implements WikiPageFilter {
             }
         }
 
-        //step 2: check token numbers
-        int tokens = 0;
-        TokenStream tokenStream = analyzer.tokenStream("contents", new
-                StringReader(wikiPage.getPlainText()));
-        tokenStream.reset();
-        while (tokenStream.incrementToken()) {
-            tokens++;
-            if (tokens > minWords) break;
-        }
+        return wikiPage.getPlainText().length()>minWords;
 
-        tokenStream.end();
-        tokenStream.close();
-
-        return tokens>=minWords;
+//        //step 2: check token numbers
+//        int tokens = 0;
+//        TokenStream tokenStream = analyzer.tokenStream("contents", new
+//                StringReader(wikiPage.getPlainText()));
+//        //tokenStream.reset();
+//        while (tokenStream.incrementToken()) {
+//            tokens++;
+//            if (tokens > minWords) break;
+//        }
+//
+//        tokenStream.end();
+//        tokenStream.close();
+//
+//        return tokens>=minWords;
     }
 
     @Override

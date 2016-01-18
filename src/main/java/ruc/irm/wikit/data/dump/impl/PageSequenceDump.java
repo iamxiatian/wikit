@@ -106,7 +106,8 @@ public class PageSequenceDump extends WikiPageDump {
         }
 
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
-        System.out.println(conf.getInt("wiki.stop.filter.min.links", 10));
+        System.out.println("minLinks:" + conf.getInt("wiki.stop.filter.min.links", 10));
+        System.out.println("minWords:" + conf.getInt("wiki.stop.filter.min.words", 50));
 
         if(commandLine.hasOption("ba")) {
             PageXmlDump pxd = new PageXmlDump(conf);
