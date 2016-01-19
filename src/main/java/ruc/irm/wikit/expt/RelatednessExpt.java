@@ -80,7 +80,7 @@ public class RelatednessExpt {
 
         writer.append("import numpy\n");
         writer.append("list1 = ").append(rawValues).append("\n");
-        writer.append("list1 = ").append(calculatedValues).append("\n");
+        writer.append("list2 = ").append(calculatedValues).append("\n");
         writer.append("numpy.corrcoef(list1, list2)[0, 1]\n");
         writer.close();
     }
@@ -96,8 +96,8 @@ public class RelatednessExpt {
         options.addOption(new Option("out", true, "output file"));
 
         CommandLine commandLine = parser.parse(options, args);
-        if (!commandLine.hasOption("c") && !commandLine.hasOption("in") &&
-                !commandLine.hasOption("out")) {
+        if (!commandLine.hasOption("c") || !commandLine.hasOption("in")
+                || !commandLine.hasOption("out")) {
             helpFormatter.printHelp(helpMsg, options);
             return;
         }
