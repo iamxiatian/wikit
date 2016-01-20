@@ -9,6 +9,7 @@ import ruc.irm.wikit.esa.concept.ConceptCache;
 import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.cache.LinkCache;
 import ruc.irm.wikit.cache.impl.LinkCacheRedisImpl;
+import ruc.irm.wikit.sr.LinkRelatedness;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -58,6 +59,8 @@ public class Start extends JFrame {
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.add("View Wiki Page", Panels.createLookupPanel(wikipedia));
 		tabbedPane.add("View Links", Panels.createLinkPanel(linkDb, articleCache));
+		tabbedPane.add("Relatedness calculation", Panels.createRelatednessPanel(
+				new LinkRelatedness(conf), articleCache));
 		tabbedPane.add("About", About.createPanel());
 		JScrollPane scrollPane = new JScrollPane(tabbedPane);
 		contentPane.add(scrollPane);

@@ -9,6 +9,7 @@ import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.data.dump.parse.WikiTextParser;
 import ruc.irm.wikit.db.Wikipedia;
 import ruc.irm.wikit.model.Page;
+import ruc.irm.wikit.sr.LinkRelatedness;
 
 import javax.swing.*;
 import java.awt.*;
@@ -185,5 +186,71 @@ public class Panels {
 
         return fullPanel;
     }
+
+
+    public static JPanel createRelatednessPanel(final LinkRelatedness relatedness,
+                                                final ArticleCache articleCache) {
+        // 声明总的大面板, fullPanel包括一个NorthPanel和一个centerPanel
+        final JPanel fullPanel = new JPanel();
+        fullPanel.setLayout(new BorderLayout());
+
+        JPanel northPanel = new JPanel();
+        fullPanel.add(northPanel, "North");
+
+        // centerPanel包括了一个文本框
+        JPanel centerPanel = new JPanel();
+        fullPanel.add(centerPanel, "Center");
+        centerPanel.setLayout(new BorderLayout());
+        final JTextArea result = new JTextArea();
+        // result.setFont(new Font("宋体", Font.PLAIN, 16));
+        result.setLineWrap(true);
+        JScrollPane centerScrollPane = new JScrollPane(result);
+        centerPanel.add(centerScrollPane, "Center");
+
+        northPanel.setLayout(new GridLayout(1, 1));
+        // northPanel.add(createWordPanel());
+        // northPanel.add(createCilinPanel());
+
+        // 以下加入northPanel中的第一个面板
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new GridLayout(1, 1));
+
+
+        JPanel linePanel = new JPanel();
+        linePanel.add(new JLabel("ID1:"));
+        final JTextField idField1 = new JTextField("508609");
+        idField1.setColumns(20);
+        linePanel.add(idField1);
+        final JTextField idField2 = new JTextField("481572");
+        idField2.setColumns(20);
+        linePanel.add(idField2);
+
+        JButton goButton = new JButton("Calculate");
+        linePanel.add(goButton);
+        mainPanel.add(linePanel);
+
+        mainPanel.setBorder(BorderFactory.createEtchedBorder());
+        northPanel.add(mainPanel);
+
+        goButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int pageId1 = NumberUtils.toInt(idField1.getText(), 0);
+                int pageId2 = NumberUtils.toInt(idField2.getText(), 0);
+                StringBuilder sb = new StringBuilder();
+                sb.append("id1:\t").append(pageId1).append("\t\t");
+                sb.append(articleCache.getNameById(pageId1, "Not Existed Id."));
+                sb.append("\nid2:\t").append(pageId2).append("\t\t");
+                sb.append(articleCache.getNameById(pageId2, "Not Existed Id."));
+
+                double value = relatedness.getRelatedness(pageId1, pageId2);
+                sb.append("\nRelatedness is ").append(value);
+                result.setText(sb.toString());
+            }
+        });
+
+        return fullPanel;
+    }
+
 
 }

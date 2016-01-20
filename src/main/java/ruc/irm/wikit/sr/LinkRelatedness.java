@@ -40,6 +40,8 @@ public class LinkRelatedness {
         if (v1.isEmpty() || v2.isEmpty()) {
             return 0.0;
         }
+        System.out.println("v1=" + v1);
+        System.out.println("v2=" + v2);
         return SimUtils.cosineSimilarity(v1, v2);
     }
 
@@ -47,7 +49,7 @@ public class LinkRelatedness {
         TIntFloatMap vector = new TIntFloatHashMap();
         for (int wpId : links.toArray()) {
             vector.put(wpId, (float) Math.log(1.0 * linkCache.getTotalPages() / linkCache
-                    .getOutlinks(wpId).size()));
+                    .getInlinks(wpId).size()));
         }
         return vector;
     }
