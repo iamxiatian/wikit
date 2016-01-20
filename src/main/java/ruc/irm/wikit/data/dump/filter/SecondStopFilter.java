@@ -26,6 +26,9 @@ import java.util.zip.GZIPOutputStream;
  * <p>
  * In order to collect in-link numbers for second phase usage, we use Redis
  * as a temporary cache, and store all &lt;page title, in-link count&gt; pairs
+ *
+ * <br/>
+ * <strong>Remember:</strong> category pages are also saved to the output file.
  */
 public class SecondStopFilter implements WikiPageFilter {
     private Logger LOG = LoggerFactory.getLogger(SecondStopFilter.class);

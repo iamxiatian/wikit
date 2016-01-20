@@ -11,6 +11,10 @@ import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.cache.ArticleCache;
 import ruc.irm.wikit.cache.NameIdMapping;
+import ruc.irm.wikit.data.dump.WikiPageDump;
+import ruc.irm.wikit.data.dump.impl.PageXmlDump;
+import ruc.irm.wikit.data.dump.parse.WikiPage;
+import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 import ruc.irm.wikit.util.NumberUtils;
 
 import java.io.Closeable;
@@ -213,81 +217,6 @@ public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
     }
 
     @Override
-    public void saveLinkRelations(int pageId, Collection<String> outlinkAnchors) {
-        byte[] key = makePageKey(pageId);
-        Set<Integer> outIds = new HashSet<>();
-
-        for (String anchor : outlinkAnchors) {
-            int anchorId = getIdByName(anchor, -1);
-            if (anchorId == -1) continue;
-
-            outIds.add(anchorId);
-
-            byte[] anchorKey = makePageKey(anchorId);
-            byte[] value = jedis.hget(anchorKey, HKEY_INLINKS);
-            Set<Integer> inIds = NumberUtils.bytes2IntSet(value);
-            inIds.add(pageId);
-            jedis.hset(key, HKEY_INLINKS, NumberUtils.intSet2Bytes(inIds));
-        }
-
-        if (outIds.size() > 0) {
-            jedis.hset(key, HKEY_OUTLINKS, NumberUtils.intSet2Bytes(outIds));
-        }
-    }
-
-    @Override
-    public long getInlinkCount(int pageId) {
-        return getInlinks(pageId).size();
-    }
-
-    @Override
-    public long getInlinkCount(String name) {
-        int pageId = getIdByName(name, -1);
-        if (pageId > 0) {
-            return getInlinks(pageId).size();
-        } else {
-            return 0;
-        }
-    }
-
-    @Override
-    public long getOutlinkCount(int pageId) {
-        return getOutlinks(pageId).size();
-    }
-
-    @Override
-    public long getOutlinkCount(String name) {
-        int pageId = getIdByName(name, -1);
-        if (pageId > 0) {
-            return getOutlinks(pageId).size();
-        } else {
-            return 0;
-        }
-    }
-
-    @Override
-    public Set<Integer> getInlinks(int pageId) {
-        if (!idExist(pageId)) {
-            return new HashSet<>();
-        }
-
-        byte[] key = makePageKey(pageId);
-        byte[] value = jedis.hget(key, HKEY_INLINKS);
-        return NumberUtils.bytes2IntSet(value);
-    }
-
-    @Override
-    public Set<Integer> getOutlinks(int pageId) {
-        if (!idExist(pageId)) {
-            return new HashSet<>();
-        }
-
-        byte[] key = makePageKey(pageId);
-        byte[] value = jedis.hget(key, HKEY_OUTLINKS);
-        return NumberUtils.bytes2IntSet(value);
-    }
-
-    @Override
     public void saveCategories(int pageId, Set<String> categories) {
         byte[] key = makePageKey(pageId);
         Set<Integer> catIds = new HashSet<>();
@@ -313,13 +242,48 @@ public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
     }
 
     @Override
-    public void postProcess() {
-        //构建alias到page id的映射
-        if(!hasDone()) {
-            LOG.error("article cache should be constructed first.");
-            return;
-        }
+    public void buildAlias(WikiPageDump dump) throws IOException {
+        clearAll();
 
+        //建立文章所拥有的别名映射关系
+        dump.traverse(new WikiPageFilter() {
+            @Override
+            public void process(WikiPage wikiPage, int index) {
+                //Process redirect article
+                if (wikiPage.isRedirect() && wikiPage.isArticle()) {
+                    int toId = getIdByName(wikiPage.getRedirect(), -1);
+                    if (toId > 0) {
+                        try {
+                            saveAlias(toId, wikiPage.getTitle());
+                        } catch (MissedException e) {
+                            LOG.error(e.toString());
+                        }
+                    }
+                    return;
+                }
+
+                if (!wikiPage.isArticle()) {
+                    return;
+                }
+
+                int pageId = getIdByName(wikiPage.getTitle(), -1);
+                if (pageId < 0) return; //skip page that was not in cache
+
+                Collection<String> categories = wikiPage.getCategories();
+                saveCategories(pageId, wikiPage.getCategories());
+
+                //保存wikiPage自身已经识别出的别名
+                try {
+                    saveAlias(pageId, wikiPage.getAliases());
+                } catch (MissedException e) {
+                    LOG.error(e.toString());
+                }
+            }
+        });
+
+        done();
+
+        //建立别名到目标文章的映射关系
         byte[] key = (prefix + "va:alias2id").getBytes(ENCODING);
         Set<Integer> ids = listIds();
         for (int id : ids) {
@@ -331,7 +295,6 @@ public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
         }
 
         jedis.hset((prefix + "va:cnf"), "aliasIdMapped", "true");
-        LOG.warn("Finish post process for article cache.");
     }
 
     @Override
@@ -368,7 +331,8 @@ public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
 
     @Override
     public void clearAll() {
-
+        //@TODO
+        System.out.println("not finished yet.");
     }
 
     /**
@@ -376,6 +340,4 @@ public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
      */
     private static final byte[] HKEY_ALIAS = "a".getBytes(ENCODING);
     private static final byte[] HKEY_CATEGORIES = "c".getBytes(ENCODING);
-    private static final byte[] HKEY_INLINKS = "i".getBytes(ENCODING);
-    private static final byte[] HKEY_OUTLINKS = "o".getBytes(ENCODING);
 }

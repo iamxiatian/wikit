@@ -32,7 +32,9 @@
 3. 运行redis-server
 4. 编译代码后运行PageSequenceDump，过滤低质量的维基数据，形成新的数据文件
 
-        $./run.py PageSequenceDump -c expt/conf/conf-chinese.xml -ba
+        $./run.py PageSequenceDump -c expt/conf/conf-chinese.xml -ba -split
+        
+   运行完毕后会在配置的conf-chinese.xml中配置的地方生成seq-article.gz和seq-category.gz两个文件
         
 5. 训练生成ESA模型
 
@@ -42,7 +44,11 @@
         
         $./run.py ESAModel -c expt/conf/conf-chinese.xml -lookup
         
-
+7. 链接数据库的构建: 构建维基页面的入链和出链关系，为WLM相关度计算准备数据
+        
+        $./run.py LinkDb -c expt/conf/conf-chinese.xml -build
+        
+        
 # Reference
 
 Paper:

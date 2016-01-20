@@ -26,6 +26,7 @@ import java.util.Collection;
  * Date: 7/15/14
  * Time: 11:08 PM
  */
+@Deprecated
 public class WikiCacheBuilder {
     private static Logger LOG = LoggerFactory.getLogger(WikiCacheBuilder.class);
 
@@ -35,40 +36,6 @@ public class WikiCacheBuilder {
         this.conf = conf;
     }
 
-    /**
-     * Build all name-id maping for wiki cache, include category name-id
-     * mapping and wiki page(article) name-id mapping
-     */
-    public void buildNameIdMapping() throws IOException {
-        NameIdMapping catMapping = new CategoryCacheRedisImpl(conf);
-        NameIdMapping artMapping = new ArticleCacheRedisImpl(conf);
-
-        WikiPageDump dump = new PageSequenceDump(conf);
-        dump.traverse(new WikiPageFilter() {
-            @Override
-            public void process(WikiPage wikiPage, int index) {
-                if (wikiPage.isRedirect()) {
-                    return; //skip redirect page
-                }
-
-                if (wikiPage.isArticle()) {
-                    artMapping.saveNameIdMapping(wikiPage.getTitle(),
-                            wikiPage.getId());
-                } else if (wikiPage.isCategory()) {
-                    catMapping.saveNameIdMapping(wikiPage.getCategoryTitle(),
-                            wikiPage.getId());
-                }
-            }
-
-
-            @Override
-            public void close() {
-                catMapping.finishNameIdMapping();
-                artMapping.finishNameIdMapping();
-            }
-
-        });
-    }
 
     /**
      * Build cache for article and/or category
@@ -107,7 +74,6 @@ public class WikiCacheBuilder {
 
                 Collection<String> categories = wikiPage.getCategories();
                 artCache.saveCategories(pageId, wikiPage.getCategories());
-                artCache.saveLinkRelations(pageId, wikiPage.getInternalLinks());
 
                 //保存wikiPage自身已经识别出的别名
                 artCache.saveAlias(pageId, wikiPage.getAliases());
@@ -203,12 +169,6 @@ public class WikiCacheBuilder {
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         WikiCacheBuilder maker = new WikiCacheBuilder(conf);
 
-        if (commandLine.hasOption("mapNameId")) {
-            System.out.println("Start build name-id mapping relation...");
-            maker.buildNameIdMapping();
-            System.out.println("Done!");
-        }
-
         if(commandLine.hasOption("bac") && commandLine.hasOption("bcc")){
             maker.buildCache(true, true);
             LOG.warn("DONE for build article and category cache!");
@@ -223,11 +183,6 @@ public class WikiCacheBuilder {
         if (commandLine.hasOption("ppc")) {
             CategoryCache catCache = new CategoryCacheRedisImpl(conf);
             catCache.assignDepth();
-        }
-
-        if (commandLine.hasOption("ppa")) {
-            ArticleCache artCache = new ArticleCacheRedisImpl(conf);
-            artCache.postProcess();
         }
     }
 }

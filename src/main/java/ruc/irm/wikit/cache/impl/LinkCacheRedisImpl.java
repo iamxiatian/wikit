@@ -1,18 +1,15 @@
-package ruc.irm.wikit.sr;
+package ruc.irm.wikit.cache.impl;
 
 import com.google.common.primitives.Ints;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import ruc.irm.wikit.cache.Cache;
+import ruc.irm.wikit.cache.LinkCache;
 import ruc.irm.wikit.cache.NameIdMapping;
 import ruc.irm.wikit.common.conf.Conf;
-import ruc.irm.wikit.common.exception.WikitException;
-import ruc.irm.wikit.data.dump.WikiPageDump;
 import ruc.irm.wikit.data.dump.impl.PageSequenceDump;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
@@ -36,23 +33,24 @@ import java.util.Set;
  * @author Tian Xia
  * @date Jan 19, 2016 11:17 AM
  */
-public class LinkDbRedisImpl implements LinkDb, Cache {
-    private Logger LOG = LoggerFactory.getLogger(LinkDbRedisImpl.class);
+public class LinkCacheRedisImpl implements LinkCache, Cache {
+    private Logger LOG = LoggerFactory.getLogger(LinkCacheRedisImpl.class);
     private Conf conf = null;
 
     private String prefix = "";
     private Jedis jedis = null;
 
 
-    public LinkDbRedisImpl(Conf conf) {
+    public LinkCacheRedisImpl(Conf conf) {
+        this.conf = conf;
         this.prefix = conf.getRedisPrefix() + "link:";
         this.jedis = new Jedis(conf.getRedisHost(), conf.getRedisPort(), conf.getRedisTimeout());
     }
 
     public void build(PageSequenceDump dump) throws IOException {
-        NameIdMapping nameIdMapping = new ConceptCacheRedisImpl(conf);
+        NameIdMapping nameIdMapping = new ArticleCacheRedisImpl(conf);
         if (!nameIdMapping.nameIdMapped()) {
-            System.out.println("Please build concept cache first!");
+            System.out.println("Please build article cache first!");
             return;
         }
 
@@ -92,7 +90,8 @@ public class LinkDbRedisImpl implements LinkDb, Cache {
 
                     pages++;
                 } else {
-                    LOG.error("Meet page that is not a normal article", wikiPage);
+                    LOG.error("Meet page that is not a normal article");
+                    System.out.println(wikiPage);
                 }
             }
 
@@ -165,6 +164,9 @@ public class LinkDbRedisImpl implements LinkDb, Cache {
 
     @Override
     public void clearAll() {
-
+        Set<byte[]> keys = jedis.keys((prefix+"*").getBytes());
+        for (byte[] key : keys) {
+            jedis.del(key);
+        }
     }
 }

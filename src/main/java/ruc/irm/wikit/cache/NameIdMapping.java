@@ -1,7 +1,18 @@
 package ruc.irm.wikit.cache;
 
+import org.apache.commons.cli.*;
+import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
+import ruc.irm.wikit.cache.impl.CategoryCacheRedisImpl;
+import ruc.irm.wikit.common.conf.Conf;
+import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.common.exception.MissedException;
+import ruc.irm.wikit.common.exception.WikitException;
+import ruc.irm.wikit.data.dump.WikiPageDump;
+import ruc.irm.wikit.data.dump.impl.PageSequenceDump;
+import ruc.irm.wikit.data.dump.parse.WikiPage;
+import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -45,4 +56,5 @@ public interface NameIdMapping {
      * @return
      */
     boolean nameIdMapped();
+
 }

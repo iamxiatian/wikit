@@ -6,15 +6,17 @@ import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
+import ruc.irm.wikit.data.dump.WikiPageDump;
+import ruc.irm.wikit.data.dump.impl.PageXmlDump;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
 /**
- * Wiki cache. When build cache, we need to add title-pageId mapping first,
- * otherwise, when save link relations, we can not get title's ID.
+ * ArticleCache store all original wikipedia page id and title mappings.
  *
  * @Version 1.1 use id(number) to replace string title, so the memory usage
  * can be reduced.
@@ -53,41 +55,24 @@ public interface ArticleCache extends NameIdMapping, Cache {
      */
     int getIdByAliasName(String name);
 
-    void saveLinkRelations(int pageId, Collection<String> outlinkAnchors);
-
-    long getInlinkCount(int pageId);
-
-    long getInlinkCount(String name);
-
-    long getOutlinkCount(int pageId);
-
-    long getOutlinkCount(String name);
-
-    Set<Integer> getInlinks(int pageId);
-
-    Set<Integer> getOutlinks(int pageId);
-
-
     void saveCategories(int pageId, Set<String> categories) throws MissedException;
 
     Set<Integer> getCategories(int pageId) throws MissedException;
 
     /**
-     * 构建完缓存之后的后处理步骤, 处理以下内容：
-     * <ul>
-     * <li>建立文章别名信息到id的映射，可以根据名称获取id</li>
-     * </ul>
+     * 构建文章缓存数据库
      */
-    void postProcess();
+    void buildAlias(WikiPageDump dump) throws IOException;
 
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, IOException {
         String helpMsg = "usage: ArticleCache -c config.xml";
 
         HelpFormatter helpFormatter = new HelpFormatter();
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
         options.addOption(new Option("c", true, "config file"));
+        options.addOption(new Option("build", false, "build alias"));
         options.addOption(new Option("test", false, "loop test on terminal"));
 
         CommandLine commandLine = parser.parse(options, args);
@@ -99,7 +84,11 @@ public interface ArticleCache extends NameIdMapping, Cache {
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         ArticleCache cache = new ArticleCacheRedisImpl(conf);
 
-        if (commandLine.hasOption("test")) {
+        if (commandLine.hasOption("build")) {
+            WikiPageDump dump = new PageXmlDump(conf);
+            cache.buildAlias(dump);
+            System.out.println("I'm DONE!");
+        } else if (commandLine.hasOption("test")) {
             Scanner scanner = new Scanner(System.in);
             String input = null;
 
