@@ -3,11 +3,12 @@ package ruc.irm.wikit.ui;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import org.apache.commons.lang3.math.NumberUtils;
-import ruc.irm.wikit.common.exception.MissedException;
-import ruc.irm.wikit.db.Wikipedia;
-import ruc.irm.wikit.esa.concept.ConceptCache;
-import ruc.irm.wikit.model.Page;
+import ruc.irm.wikit.cache.ArticleCache;
 import ruc.irm.wikit.cache.LinkCache;
+import ruc.irm.wikit.common.exception.MissedException;
+import ruc.irm.wikit.data.dump.parse.WikiTextParser;
+import ruc.irm.wikit.db.Wikipedia;
+import ruc.irm.wikit.model.Page;
 
 import javax.swing.*;
 import java.awt.*;
@@ -58,7 +59,7 @@ public class Panels {
 
         JPanel linePanel = new JPanel();
         linePanel.add(new JLabel("   ID:"));
-        final JTextField idField = new JTextField("123");
+        final JTextField idField = new JTextField("4263516");
         idField.setColumns(50);
         linePanel.add(idField);
         JButton idButton = new JButton("Lookup");
@@ -86,7 +87,12 @@ public class Panels {
                 sb.append("id:\t").append(id).append("\n");
                 if (page != null) {
                     sb.append("title:\t").append(page.getTitle()).append("\n");
-                    sb.append("type:\t").append(page.getType()).append("\n\n");
+                    sb.append("type:\t").append(page.getType()).append("\n");
+                    sb.append("internal links:\n");
+                    for(String link: WikiTextParser.parseInternalLinks(page.getContent())) {
+                        sb.append(link).append("\t");
+                    }
+                    sb.append("\n\n");
                     sb.append(page.getContent());
                 }
                 result.setText(sb.toString());
@@ -97,7 +103,7 @@ public class Panels {
     }
 
     public static JPanel createLinkPanel(final LinkCache linkCache,
-                                         final ConceptCache conceptCache) {
+                                         final ArticleCache articleCache) {
         // 声明总的大面板, fullPanel包括一个NorthPanel和一个centerPanel
         final JPanel fullPanel = new JPanel();
         fullPanel.setLayout(new BorderLayout());
@@ -126,7 +132,7 @@ public class Panels {
 
         JPanel linePanel = new JPanel();
         linePanel.add(new JLabel("   ID:"));
-        final JTextField idField = new JTextField("123");
+        final JTextField idField = new JTextField("100");
         idField.setColumns(50);
         linePanel.add(idField);
         JButton idButton = new JButton("Lookup");
@@ -141,7 +147,7 @@ public class Panels {
             public void actionPerformed(ActionEvent e) {
                 int pageId = NumberUtils.toInt(idField.getText(), 0);
                 TIntSet inlinks = linkCache.getInlinks(pageId);
-                TIntSet outlinks = linkCache.getOutLinks(pageId);
+                TIntSet outlinks = linkCache.getOutlinks(pageId);
 
                 StringBuilder sb = new StringBuilder();
                 sb.append("id:\t").append(pageId);
@@ -151,7 +157,7 @@ public class Panels {
                     public boolean execute(int id) {
                         try {
                             sb.append("\n\t").append(id).append("\t");
-                            sb.append(conceptCache.getNameById(id));
+                            sb.append(articleCache.getNameById(id));
                         } catch (MissedException e1) {
                             e1.printStackTrace();
                         }
@@ -165,7 +171,7 @@ public class Panels {
                     public boolean execute(int id) {
                         try {
                             sb.append("\n\t").append(id).append("\t");
-                            sb.append(conceptCache.getNameById(id));
+                            sb.append(articleCache.getNameById(id));
                         } catch (MissedException e1) {
                             e1.printStackTrace();
                         }

@@ -1,5 +1,7 @@
 package ruc.irm.wikit.ui;
 
+import ruc.irm.wikit.cache.ArticleCache;
+import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.db.Wikipedia;
@@ -27,7 +29,7 @@ public class Start extends JFrame {
 
 	private Wikipedia wikipedia = null;
 	private LinkCache linkDb = null;
-	private ConceptCache conceptCache = null;
+	private ArticleCache articleCache = null;
 
 	public Start(Conf conf) {
 		this.setTitle("Wikit--Wikipedia toolkit");
@@ -37,7 +39,7 @@ public class Start extends JFrame {
 
 		this.wikipedia = new Wikipedia(conf);
 		this.linkDb = new LinkCacheRedisImpl(conf);
-		this.conceptCache = new ConceptCacheRedisImpl(conf);
+		this.articleCache = new ArticleCacheRedisImpl(conf);
 
 		// //////////////////////////////////
 		// add menu
@@ -55,7 +57,7 @@ public class Start extends JFrame {
 		Container contentPane = this.getContentPane();
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.add("View Wiki Page", Panels.createLookupPanel(wikipedia));
-		tabbedPane.add("View Links", Panels.createLinkPanel(linkDb, conceptCache));
+		tabbedPane.add("View Links", Panels.createLinkPanel(linkDb, articleCache));
 		tabbedPane.add("About", About.createPanel());
 		JScrollPane scrollPane = new JScrollPane(tabbedPane);
 		contentPane.add(scrollPane);

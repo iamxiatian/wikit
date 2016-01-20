@@ -1,6 +1,15 @@
 package ruc.irm.wikit.data.dump.parse;
 
+import de.tudarmstadt.ukp.wikipedia.parser.Link;
+import de.tudarmstadt.ukp.wikipedia.parser.Paragraph;
+import de.tudarmstadt.ukp.wikipedia.parser.ParsedPage;
+import de.tudarmstadt.ukp.wikipedia.parser.Section;
+import de.tudarmstadt.ukp.wikipedia.parser.mediawiki.MediaWikiParser;
+import de.tudarmstadt.ukp.wikipedia.parser.mediawiki.MediaWikiParserFactory;
+
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,6 +44,22 @@ public class WikiTextParser {
         }
 
         return null;
+    }
+
+    public static List<String> parseInternalLinks(String text) {
+        MediaWikiParserFactory pf = new MediaWikiParserFactory();
+        MediaWikiParser parser = pf.createParser();
+        ParsedPage pp = parser.parse(text);
+        List<String> internalLinks = new LinkedList<>();
+
+        if (pp != null) {
+            for (Link link : pp.getLinks()) {
+                if (link.getType() == Link.type.INTERNAL) {
+                    internalLinks.add(link.getTarget());
+                }
+            }
+        }
+        return internalLinks;
     }
 
     private static final Pattern COMMONS_CATEGORY_PATTERN = Pattern.compile("\\{\\{Commonscat\\|([^\\}]+)\\}\\}", Pattern.CASE_INSENSITIVE);

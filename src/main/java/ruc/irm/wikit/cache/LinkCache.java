@@ -21,7 +21,7 @@ import java.io.IOException;
 public interface LinkCache {
     public TIntSet getInlinks(int pageId);
 
-    public TIntSet getOutLinks(int pageId);
+    public TIntSet getOutlinks(int pageId);
 
     public int getTotalPages();
 
@@ -64,7 +64,7 @@ public interface LinkCache {
                 public void handle(String input) throws IOException {
                     int pageId = Integer.parseInt(input);
                     TIntSet inlinks = linkCache.getInlinks(pageId);
-                    TIntSet outlinks = linkCache.getOutLinks(pageId);
+                    TIntSet outlinks = linkCache.getOutlinks(pageId);
                     System.out.println("inlinks:" + inlinks);
                     System.out.println("outlinks:" + outlinks);
                 }

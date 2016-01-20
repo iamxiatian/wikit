@@ -15,6 +15,7 @@ import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.util.NumberUtils;
+import ruc.irm.wikit.util.ProgressCounter;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -54,6 +55,7 @@ public class LinkCacheRedisImpl implements LinkCache, Cache {
             return;
         }
 
+        this.clearAll();
         dump.traverse(new WikiPageFilter() {
             private int pages = 0;
             private int inLinks = 0;
@@ -140,7 +142,7 @@ public class LinkCacheRedisImpl implements LinkCache, Cache {
     }
 
     @Override
-    public TIntSet getOutLinks(int pageId) {
+    public TIntSet getOutlinks(int pageId) {
         byte[] key = makeKey(prefix + "out:", pageId);
         Set<byte[]> keys = jedis.hkeys(key);
 
@@ -165,8 +167,11 @@ public class LinkCacheRedisImpl implements LinkCache, Cache {
     @Override
     public void clearAll() {
         Set<byte[]> keys = jedis.keys((prefix+"*").getBytes());
+        ProgressCounter counter = new ProgressCounter(keys.size());
         for (byte[] key : keys) {
             jedis.del(key);
+            counter.increment();
         }
+        counter.done();
     }
 }
