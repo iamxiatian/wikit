@@ -6,9 +6,13 @@ import org.apache.commons.lang3.math.NumberUtils;
 import ruc.irm.wikit.cache.ArticleCache;
 import ruc.irm.wikit.cache.LinkCache;
 import ruc.irm.wikit.common.exception.MissedException;
+import ruc.irm.wikit.common.exception.WikitException;
 import ruc.irm.wikit.data.dump.parse.WikiTextParser;
 import ruc.irm.wikit.db.Wikipedia;
 import ruc.irm.wikit.esa.ESAModel;
+import ruc.irm.wikit.esa.concept.ConceptCache;
+import ruc.irm.wikit.esa.concept.vector.ConceptIterator;
+import ruc.irm.wikit.esa.concept.vector.ConceptVector;
 import ruc.irm.wikit.model.Page;
 import ruc.irm.wikit.sr.LinkRelatedness;
 
@@ -273,6 +277,82 @@ public class Panels {
 
         return fullPanel;
     }
+
+
+    public static JPanel createESAPanel(final ArticleCache articleCache,
+                                         final ESAModel esaModel,
+                                        final ConceptCache conceptCache) {
+        // 声明总的大面板, fullPanel包括一个NorthPanel和一个centerPanel
+        final JPanel fullPanel = new JPanel();
+        fullPanel.setLayout(new BorderLayout());
+
+        JPanel northPanel = new JPanel();
+        fullPanel.add(northPanel, "North");
+
+        // centerPanel包括了一个文本框
+        JPanel centerPanel = new JPanel();
+        fullPanel.add(centerPanel, "Center");
+        centerPanel.setLayout(new BorderLayout());
+        final JTextArea result = new JTextArea();
+        // result.setFont(new Font("宋体", Font.PLAIN, 16));
+        result.setLineWrap(true);
+        JScrollPane centerScrollPane = new JScrollPane(result);
+        centerPanel.add(centerScrollPane, "Center");
+
+        northPanel.setLayout(new GridLayout(1, 1));
+        // northPanel.add(createWordPanel());
+        // northPanel.add(createCilinPanel());
+
+        // 以下加入northPanel中的第一个面板
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new GridLayout(1, 1));
+
+
+        JPanel linePanel = new JPanel();
+        linePanel.add(new JLabel("ID1:"));
+        final JTextField textField = new JTextField("人民大学");
+        textField.setColumns(50);
+        linePanel.add(textField);
+
+        JButton goButton = new JButton("GO");
+        linePanel.add(goButton);
+        mainPanel.add(linePanel);
+
+        mainPanel.setBorder(BorderFactory.createEtchedBorder());
+        northPanel.add(mainPanel);
+
+        goButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String text = textField.getText();
+                StringBuilder sb = new StringBuilder();
+                sb.append(text).append("\n----------------------\n");
+                try {
+                    ConceptVector cv = esaModel.getCombinedVector(text, 50);
+                    ConceptIterator it = cv.orderedIterator();
+                    sb.append("\tsn\tconceptId\twikiId\tName\tvalue\n");
+                    int sn = 1;
+                    while (it.next()) {
+                        int conceptId = it.getId();
+                        double value = it.getValue();
+                        String wikiId = conceptCache.getOutIdById(conceptId);
+                        String name = conceptCache.getNameById(conceptId);
+                        sb.append("\t").append(sn++);
+                        sb.append("\t").append(conceptId).append("\t");
+                        sb.append(wikiId).append("\t").append(name).append("\t");
+                        sb.append(String.format("%.4f", value)).append("\n");
+                    }
+                } catch (WikitException e1) {
+                    sb.append(e.toString());
+                }
+
+                result.setText(result.getText() + "\n\n" + sb.toString() );
+            }
+        });
+
+        return fullPanel;
+    }
+
 
 
 }

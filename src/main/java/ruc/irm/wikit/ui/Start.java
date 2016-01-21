@@ -33,6 +33,7 @@ public class Start extends JFrame {
 	private Wikipedia wikipedia = null;
 	private LinkCache linkDb = null;
 	private ArticleCache articleCache = null;
+	private ConceptCache conceptCache = null;
 	private ESAModel esaModel = null;
 
 	public Start(Conf conf) {
@@ -45,6 +46,7 @@ public class Start extends JFrame {
 		this.linkDb = new LinkCacheRedisImpl(conf);
 		this.articleCache = new ArticleCacheRedisImpl(conf);
 		this.esaModel = new ESAModelImpl(conf);
+		this.conceptCache = new ConceptCacheRedisImpl(conf);
 		// //////////////////////////////////
 		// add menu
 		JMenuBar menuBar = new JMenuBar();
@@ -65,6 +67,9 @@ public class Start extends JFrame {
 		tabbedPane.add("View Links", Panels.createLinkPanel(linkDb, articleCache));
 		tabbedPane.add("Relatedness calculation", Panels.createRelatednessPanel(
 				new LinkRelatedness(conf), articleCache, esaModel));
+		tabbedPane.add("ESA Analysis", Panels.createESAPanel
+				(articleCache, esaModel, conceptCache));
+
 		tabbedPane.add("About", About.createPanel());
 		JScrollPane scrollPane = new JScrollPane(tabbedPane);
 		contentPane.add(scrollPane);

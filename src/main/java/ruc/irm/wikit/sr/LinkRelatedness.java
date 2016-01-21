@@ -28,7 +28,8 @@ public class LinkRelatedness {
     }
 
     public double getRelatedness(int pageId1, int pageId2) {
-        return cosineOutlink(pageId1, pageId2);
+        return 0.5*cosineOutlink(pageId1, pageId2) + 0.5*googleInlink
+                (pageId1, pageId2);
     }
 
 
