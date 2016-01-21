@@ -3,6 +3,7 @@ package ruc.irm.wikit.sr;
 import gnu.trove.map.TIntFloatMap;
 import gnu.trove.map.hash.TIntFloatHashMap;
 import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.cli.*;
 import ruc.irm.wikit.cache.LinkCache;
 import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
@@ -31,7 +32,26 @@ public class LinkRelatedness {
     }
 
 
-    private double cosineOutlink(int pageId1, int pageId2) {
+    public double googleInlink(int pageId1, int pageId2) {
+        TIntSet inlinks1 = linkCache.getInlinks(pageId1);
+        TIntSet inlinks2 = linkCache.getInlinks(pageId2);
+
+        if (inlinks1.isEmpty() && inlinks2.isEmpty()) {
+            return 0.0;
+        }
+        int a = inlinks1.size();
+        int b = inlinks2.size();
+        TIntSet intersection = new TIntHashSet(inlinks1.toArray());
+        intersection.retainAll(inlinks2);
+        int ab = intersection.size();
+
+        return 1.0 - (
+                (Math.log(Math.max(a, b)) - Math.log(ab))
+                        / (Math.log(linkCache.getTotalPages()) - Math.log(Math.min(a, b)))
+        );
+    }
+
+    public double cosineOutlink(int pageId1, int pageId2) {
         TIntSet outlinks1 = linkCache.getOutlinks(pageId1);
         TIntSet outlinks2 = linkCache.getOutlinks(pageId2);
 
@@ -40,8 +60,7 @@ public class LinkRelatedness {
         if (v1.isEmpty() || v2.isEmpty()) {
             return 0.0;
         }
-        System.out.println("v1=" + v1);
-        System.out.println("v2=" + v2);
+
         return SimUtils.cosineSimilarity(v1, v2);
     }
 

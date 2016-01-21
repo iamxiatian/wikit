@@ -5,6 +5,8 @@ import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.db.Wikipedia;
+import ruc.irm.wikit.esa.ESAModel;
+import ruc.irm.wikit.esa.ESAModelImpl;
 import ruc.irm.wikit.esa.concept.ConceptCache;
 import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.cache.LinkCache;
@@ -31,6 +33,7 @@ public class Start extends JFrame {
 	private Wikipedia wikipedia = null;
 	private LinkCache linkDb = null;
 	private ArticleCache articleCache = null;
+	private ESAModel esaModel = null;
 
 	public Start(Conf conf) {
 		this.setTitle("Wikit--Wikipedia toolkit");
@@ -41,7 +44,7 @@ public class Start extends JFrame {
 		this.wikipedia = new Wikipedia(conf);
 		this.linkDb = new LinkCacheRedisImpl(conf);
 		this.articleCache = new ArticleCacheRedisImpl(conf);
-
+		this.esaModel = new ESAModelImpl(conf);
 		// //////////////////////////////////
 		// add menu
 		JMenuBar menuBar = new JMenuBar();
@@ -57,10 +60,11 @@ public class Start extends JFrame {
 
 		Container contentPane = this.getContentPane();
 		JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.add("View Wiki Page", Panels.createLookupPanel(wikipedia));
+		tabbedPane.add("View Wiki Page", Panels.createLookupPanel(wikipedia,
+				articleCache));
 		tabbedPane.add("View Links", Panels.createLinkPanel(linkDb, articleCache));
 		tabbedPane.add("Relatedness calculation", Panels.createRelatednessPanel(
-				new LinkRelatedness(conf), articleCache));
+				new LinkRelatedness(conf), articleCache, esaModel));
 		tabbedPane.add("About", About.createPanel());
 		JScrollPane scrollPane = new JScrollPane(tabbedPane);
 		contentPane.add(scrollPane);

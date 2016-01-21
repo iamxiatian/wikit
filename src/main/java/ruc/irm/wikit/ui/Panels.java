@@ -8,6 +8,7 @@ import ruc.irm.wikit.cache.LinkCache;
 import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.data.dump.parse.WikiTextParser;
 import ruc.irm.wikit.db.Wikipedia;
+import ruc.irm.wikit.esa.ESAModel;
 import ruc.irm.wikit.model.Page;
 import ruc.irm.wikit.sr.LinkRelatedness;
 
@@ -31,7 +32,8 @@ public class Panels {
      * 
      * @return
      */
-    public static JPanel createLookupPanel(final Wikipedia wikipedia) {
+    public static JPanel createLookupPanel(final Wikipedia wikipedia,
+                                           final ArticleCache articleCache) {
         // 声明总的大面板, fullPanel包括一个NorthPanel和一个centerPanel
         final JPanel fullPanel = new JPanel();
         fullPanel.setLayout(new BorderLayout());
@@ -90,7 +92,7 @@ public class Panels {
                     sb.append("title:\t").append(page.getTitle()).append("\n");
                     sb.append("type:\t").append(page.getType()).append("\n");
                     sb.append("internal links:\n");
-                    for(String link: WikiTextParser.parseInternalLinks(page.getContent())) {
+                    for (String link : WikiTextParser.parseInternalLinks(page.getContent())) {
                         sb.append(link).append("\t");
                     }
                     sb.append("\n\n");
@@ -100,6 +102,18 @@ public class Panels {
             }
         });
 
+        titleButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String title = titleField.getText();
+                try {
+                    int id = articleCache.getIdByName(title);
+                    idField.setText(Integer.toString(id));
+                } catch (MissedException e1) {
+
+                }
+            }
+        });
         return fullPanel;
     }
 
@@ -189,7 +203,8 @@ public class Panels {
 
 
     public static JPanel createRelatednessPanel(final LinkRelatedness relatedness,
-                                                final ArticleCache articleCache) {
+                                                final ArticleCache articleCache,
+                                                final ESAModel esaModel) {
         // 声明总的大面板, fullPanel包括一个NorthPanel和一个centerPanel
         final JPanel fullPanel = new JPanel();
         fullPanel.setLayout(new BorderLayout());
@@ -237,14 +252,21 @@ public class Panels {
             public void actionPerformed(ActionEvent e) {
                 int pageId1 = NumberUtils.toInt(idField1.getText(), 0);
                 int pageId2 = NumberUtils.toInt(idField2.getText(), 0);
+                String title1 = articleCache.getNameById(pageId1, "Missed.");
+                String title2 = articleCache.getNameById(pageId2, "Missed.");
+
                 StringBuilder sb = new StringBuilder();
                 sb.append("id1:\t").append(pageId1).append("\t\t");
-                sb.append(articleCache.getNameById(pageId1, "Not Existed Id."));
+                sb.append(title1);
                 sb.append("\nid2:\t").append(pageId2).append("\t\t");
-                sb.append(articleCache.getNameById(pageId2, "Not Existed Id."));
+                sb.append(title2);
 
-                double value = relatedness.getRelatedness(pageId1, pageId2);
-                sb.append("\nRelatedness is ").append(value);
+                double value = relatedness.googleInlink(pageId1, pageId2);
+                sb.append("\nGoogle inlink relatedness is ").append(value);
+                sb.append("\nCosine outlink relatedness is ")
+                        .append(relatedness.cosineOutlink(pageId1, pageId2));
+                value = esaModel.getRelatedness(title1, title2);
+                sb.append("\nESA relatedness is ").append(value);
                 result.setText(sb.toString());
             }
         });
