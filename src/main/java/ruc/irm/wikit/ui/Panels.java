@@ -110,12 +110,8 @@ public class Panels {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String title = titleField.getText();
-                try {
-                    int id = articleCache.getIdByName(title);
-                    idField.setText(Integer.toString(id));
-                } catch (MissedException e1) {
-
-                }
+                int id = articleCache.getIdByNameOrAlias(title);
+                idField.setText(Integer.toString(id));
             }
         });
         return fullPanel;
@@ -346,7 +342,7 @@ public class Panels {
                     sb.append(e.toString());
                 }
 
-                result.setText(result.getText() + "\n\n" + sb.toString() );
+                result.setText(result.getText());
             }
         });
 

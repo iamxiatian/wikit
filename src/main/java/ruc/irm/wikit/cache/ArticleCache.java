@@ -55,6 +55,8 @@ public interface ArticleCache extends NameIdMapping, Cache {
      */
     int getIdByAliasName(String name);
 
+    int getIdByNameOrAlias(String name);
+
     void saveCategories(int pageId, Set<String> categories) throws MissedException;
 
     Set<Integer> getCategories(int pageId) throws MissedException;

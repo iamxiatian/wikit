@@ -26,7 +26,7 @@ import java.util.Enumeration;
  * @author Tian Xia
  * @date Jan 20, 2016 11:11 AM
  */
-public class Start extends JFrame {
+public class StartFrame extends JFrame {
 
 	private static final long serialVersionUID = 85744461208L;
 
@@ -36,7 +36,7 @@ public class Start extends JFrame {
 	private ConceptCache conceptCache = null;
 	private ESAModel esaModel = null;
 
-	public Start(Conf conf) {
+	public StartFrame(Conf conf) {
 		this.setTitle("Wikit--Wikipedia toolkit");
 		this.setSize(420, 700);
 		this.setLocationRelativeTo(null);
@@ -104,7 +104,7 @@ public class Start extends JFrame {
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
-				Start w = new Start(conf);
+				StartFrame w = new StartFrame(conf);
 				w.setVisible(true);
 			}
 		});

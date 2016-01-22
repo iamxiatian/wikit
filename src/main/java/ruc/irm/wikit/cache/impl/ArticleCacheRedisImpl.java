@@ -217,6 +217,15 @@ public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
     }
 
     @Override
+    public int getIdByNameOrAlias(String name) {
+        int id = getIdByName(name, -1);
+        if (id < 0) {
+            id = getIdByAliasName(name);
+        }
+        return id;
+    }
+
+    @Override
     public void saveCategories(int pageId, Set<String> categories) {
         byte[] key = makePageKey(pageId);
         Set<Integer> catIds = new HashSet<>();

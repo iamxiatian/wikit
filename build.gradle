@@ -75,6 +75,9 @@ dependencies {
             'org.neo4j:neo4j:2.0.3',
             'org.neo4j:neo4j-lucene-index:2.0.3',
             'de.erichseifert.gral:gral-core:0.10', //java graph tool
+
+            'org.freemarker:freemarker:2.3.23',
+            'org.nanohttpd:nanohttpd:2.2.0',
     )
     testCompile('junit:junit:4.11',)
 }

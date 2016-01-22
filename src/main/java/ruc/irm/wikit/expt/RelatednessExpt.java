@@ -5,10 +5,12 @@ import com.google.common.base.Splitter;
 import com.google.common.io.Files;
 import org.apache.commons.cli.*;
 import org.apache.commons.compress.utils.IOUtils;
+import ruc.irm.wikit.cache.ArticleCache;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.esa.ESAModel;
 import ruc.irm.wikit.esa.ESAModelImpl;
+import ruc.irm.wikit.sr.LinkRelatedness;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,9 +28,38 @@ import java.util.List;
  */
 public class RelatednessExpt {
     private Conf conf;
+    private enum MethodType {
+        ESA,
+        WLM
+    }
+    private MethodType type = MethodType.ESA;
+
+    private ESAModel esaModel = null;
+    private LinkRelatedness linkRelatedness = null;
+    private ArticleCache articleCache = null;
 
     private RelatednessExpt(Conf conf) {
         this.conf = conf;
+        this.type = MethodType.WLM;
+    }
+
+    private double getRelatedness(String word1, String word2) {
+        if (type == MethodType.ESA) {
+            return esaModel.getRelatedness(word1, word2);
+        } else if (type == MethodType.WLM) {
+            int p1 = articleCache.getIdByNameOrAlias(word1);
+            int p2 = articleCache.getIdByNameOrAlias(word2);
+            if (p1 == 0) {
+                System.out.println("Page does not exist for " + word1);
+            }
+            if (p2 == 0) {
+                System.out.println("Page does not exist for " + word2);
+            }
+
+            return linkRelatedness.getRelatedness(p1, p2);
+        }
+
+        return 0;
     }
 
     /**
@@ -45,7 +76,6 @@ public class RelatednessExpt {
      * @param output
      */
     public void calculateByESA(File input, File output) throws IOException {
-        ESAModel model = new ESAModelImpl(conf);
         StringBuilder rawValues = new StringBuilder();
         StringBuilder calculatedValues = new StringBuilder();
         BufferedWriter writer = Files.newWriter(output, Charsets.UTF_8);
@@ -63,7 +93,7 @@ public class RelatednessExpt {
             String firstWord = parts.get(0);
             String secondWord = parts.get(1);
             String rawValue = parts.get(2);
-            double relatedness = model.getRelatedness(firstWord, secondWord);
+            double relatedness = getRelatedness(firstWord, secondWord);
             String newValue =  String.format("%.4f", relatedness);
             writer.write(line + "\t" + newValue+"\n");
 
@@ -92,12 +122,14 @@ public class RelatednessExpt {
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
         options.addOption(new Option("c", true, "config file"));
+        options.addOption(new Option("type", true, "method, wlm or esa"));
         options.addOption(new Option("in", true, "input file(word-240.txt)"));
         options.addOption(new Option("out", true, "output file"));
 
         CommandLine commandLine = parser.parse(options, args);
         if (!commandLine.hasOption("c") || !commandLine.hasOption("in")
-                || !commandLine.hasOption("out")) {
+                || !commandLine.hasOption("out")
+                ||!commandLine.hasOption("type")) {
             helpFormatter.printHelp(helpMsg, options);
             return;
         }
@@ -105,7 +137,16 @@ public class RelatednessExpt {
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         String in = commandLine.getOptionValue("in");
         String out = commandLine.getOptionValue("out");
+        String type = commandLine.getOptionValue("type");
         RelatednessExpt expt = new RelatednessExpt(conf);
+        if(type.equalsIgnoreCase("wlm")) {
+            expt.type = MethodType.WLM;
+        } else if (type.equalsIgnoreCase("esa")) {
+            expt.type = MethodType.ESA;
+        } else {
+            System.out.println("type must be esa or wlm");
+            return;
+        }
         expt.calculateByESA(new File(in), new File(out));
         System.out.println("I'm DONE!");
     }
