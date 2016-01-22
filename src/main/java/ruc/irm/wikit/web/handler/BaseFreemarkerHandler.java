@@ -1,6 +1,7 @@
 package ruc.irm.wikit.web.handler;
 
 import fi.iki.elonen.NanoHTTPD;
+import freemarker.template.Configuration;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.web.RouterNanoHTTPD;
@@ -13,7 +14,20 @@ import java.util.Map;
  * @date Jan 22, 2016 11:30 PM
  */
 public abstract class BaseFreemarkerHandler extends RouterNanoHTTPD.DefaultHandler {
-    public static Conf conf = ConfFactory.createConf("expt/conf/conf-chinese.xml", true);;
+    public static Conf conf = ConfFactory.createConf("expt/conf/conf-chinese.xml", true);
+
+    public BaseFreemarkerHandler() {
+
+    }
+
+    protected Configuration getCfg(){
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
+        cfg.setDefaultEncoding("UTF-8");
+        cfg.setNumberFormat("");
+        cfg.setClassForTemplateLoading(this.getClass(),
+                "/web/template");
+        return cfg;
+    }
 
     @Override
     public String getText() {
