@@ -2,6 +2,8 @@ package ruc.irm.wikit.web.handler;
 
 import fi.iki.elonen.NanoHTTPD;
 import org.apache.commons.lang3.math.NumberUtils;
+import ruc.irm.wikit.cache.ArticleCache;
+import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
 import ruc.irm.wikit.data.dump.parse.WikiTextParser;
 import ruc.irm.wikit.db.Wikipedia;
 import ruc.irm.wikit.model.Page;
@@ -9,34 +11,49 @@ import ruc.irm.wikit.model.Page;
 import java.util.Map;
 
 /**
+ * Example:
+ *
+ *  http://localhost:9090/wiki/article/100
+ *  http://localhost:9090/wiki/article?name=hello
+ *
  * @author Tian Xia
  * @date Jan 22, 2016 11:40 PM
  */
 public class WikiArticleHandler extends BaseFreemarkerHandler {
-    private Wikipedia wikipedia = new Wikipedia(conf);
+    private ArticleCache articleCache = null;
+
+    public WikiArticleHandler() {
+        this.articleCache = new ArticleCacheRedisImpl(conf);
+    }
 
     @Override
-    public String getText(Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
-        String id = urlParams.get("id");
-        Page page = wikipedia.getPageById(NumberUtils.toInt(id, 0));
-        StringBuilder sb = new StringBuilder();
-        sb.append("id:\t").append(id).append("\n");
-        if (page != null) {
-            sb.append("title:\t").append(page.getTitle()).append("\n");
-            sb.append("type:\t").append(page.getType()).append("\n");
-            sb.append("internal links:\n");
-            for (String link : WikiTextParser.parseInternalLinks(page.getContent())) {
-                sb.append(link).append("\t");
-            }
-            sb.append("\n\n");
-            sb.append(page.getContent());
+    protected Map<String, Object> parseContext(Map<String, Object> root, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
+        Wikipedia wikipedia = new Wikipedia(conf);
+
+        int id = 0;
+        if(urlParams.containsKey("id")) {
+            id = NumberUtils.toInt(urlParams.get("id"), 0);
+        } else if (session.getParms().containsKey("name")) {
+            String name = session.getParms().get("name");
+            System.out.println("input name is " + name);
+            id = articleCache.getIdByNameOrAlias(name);
         }
-        return sb.toString();
+
+        root.put("id", id);
+        Page page = wikipedia.getPageById(id);
+        if (page != null) {
+            root.put("title", page.getTitle());
+            root.put("type", page.getType());
+            root.put("content", page.getContent());
+            root.put("links",  WikiTextParser.parseInternalLinks(page
+                    .getContent()));
+        }
+        wikipedia.close();
+        return root;
     }
 
     @Override
-    public String getMimeType() {
-        return "text/plain";
+    protected String getTemplateName() {
+        return "article.ftl";
     }
-
 }

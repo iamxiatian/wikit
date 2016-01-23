@@ -115,6 +115,7 @@ public class AppNanolets extends RouterNanoHTTPD {
     @Override
     public void addMappings() {
         super.addMappings();
+        addRoute("/wiki/article", WikiArticleHandler.class);
         addRoute("/wiki/article/:id", WikiArticleHandler.class);
         addRoute("/wiki/link/:id", WikiLinkHandler.class);
 

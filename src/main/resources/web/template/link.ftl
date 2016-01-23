@@ -1,7 +1,8 @@
 <#setting number_format="0"/>
 <html>
 	<head>
-	<title>Inlinks and Outlinks</title>
+		<meta charset="utf-8">
+		<title>Inlinks and Outlinks</title>
 	</head>
 	<body>
 	<p>

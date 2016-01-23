@@ -35,91 +35,48 @@ public class WikiLinkHandler extends BaseFreemarkerHandler {
     }
 
     @Override
-    public String getText(Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
-        try {
-            Map<String, Object> root = new HashMap<>();
+    protected Map<String, Object> parseContext(Map<String, Object> root, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
+        int pageId = NumberUtils.toInt(urlParams.get("id"), 0);
 
-            int pageId = NumberUtils.toInt(urlParams.get("id"), 0);
+        root.put("id", pageId);
+        root.put("name", articleCache.getNameById(pageId, "Not Existed"));
+        root.put("alias", articleCache.getAliasNames(pageId));
 
-            root.put("id", pageId);
-            root.put("name", articleCache.getNameById(pageId, "Not Existed"));
-            root.put("alias", articleCache.getAliasNames(pageId));
-
-            TIntSet inlinks = linkCache.getInlinks(pageId);
-            TIntSet outlinks = linkCache.getOutlinks(pageId);
-            List<Pair<String, Integer>> listIn = new ArrayList<>();
-            inlinks.forEach(new TIntProcedure() {
-                @Override
-                public boolean execute(int id) {
-                    try {
-                        listIn.add(new MutablePair<>(articleCache.getNameById(id), id));
-                    } catch (MissedException e1) {
-                        e1.printStackTrace();
-                    }
-                    return true;
+        TIntSet inlinks = linkCache.getInlinks(pageId);
+        TIntSet outlinks = linkCache.getOutlinks(pageId);
+        List<Pair<String, Integer>> listIn = new ArrayList<>();
+        inlinks.forEach(new TIntProcedure() {
+            @Override
+            public boolean execute(int id) {
+                try {
+                    listIn.add(new MutablePair<>(articleCache.getNameById(id), id));
+                } catch (MissedException e1) {
+                    e1.printStackTrace();
                 }
-            });
-            root.put("inlinks", listIn);
+                return true;
+            }
+        });
+        root.put("inlinks", listIn);
 
-            List<Pair<String, Integer>> listOut = new ArrayList<>();
-            outlinks.forEach(new TIntProcedure() {
-                @Override
-                public boolean execute(int id) {
-                    try {
-                        listOut.add(new MutablePair<>(articleCache.getNameById(id), id));
-                    } catch (MissedException e1) {
-                        e1.printStackTrace();
-                    }
-                    return true;
+        List<Pair<String, Integer>> listOut = new ArrayList<>();
+        outlinks.forEach(new TIntProcedure() {
+            @Override
+            public boolean execute(int id) {
+                try {
+                    listOut.add(new MutablePair<>(articleCache.getNameById(id), id));
+                } catch (MissedException e1) {
+                    e1.printStackTrace();
                 }
-            });
-            root.put("outlinks", listOut);
-
-            Template template = getCfg().getTemplate("link.ftl");
-            StringWriter writer = new StringWriter();
-            template.process(root, writer);
-            return writer.toString();
-        } catch (IOException e) {
-            return e.toString();
-        } catch (TemplateException e) {
-            return e.toString();
-        }
-
-//        StringBuilder sb = new StringBuilder();
-//
-//        int pageId = NumberUtils.toInt(urlParams.get("id"), 0);
-//        TIntSet inlinks = linkCache.getInlinks(pageId);
-//        TIntSet outlinks = linkCache.getOutlinks(pageId);
-//
-//        sb.append("id:\t").append(pageId);
-//        sb.append("\ninlinks:[").append(inlinks.size()).append("]");
-//        inlinks.forEach(new TIntProcedure() {
-//            @Override
-//            public boolean execute(int id) {
-//                try {
-//                    sb.append("\n\t").append(id).append("\t");
-//                    sb.append(articleCache.getNameById(id));
-//                } catch (MissedException e1) {
-//                    e1.printStackTrace();
-//                }
-//                return true;
-//            }
-//        });
-//
-//        sb.append("\noutlinks:[").append(outlinks.size()).append("]\n");
-//        outlinks.forEach(new TIntProcedure() {
-//            @Override
-//            public boolean execute(int id) {
-//                try {
-//                    sb.append("\n\t").append(id).append("\t");
-//                    sb.append(articleCache.getNameById(id));
-//                } catch (MissedException e1) {
-//                    e1.printStackTrace();
-//                }
-//                return true;
-//            }
-//        });
-//
-//        return sb.toString();
+                return true;
+            }
+        });
+        root.put("outlinks", listOut);
+        return root;
     }
+
+    @Override
+    protected String getTemplateName() {
+        return "link.ftl";
+    }
+
 }
