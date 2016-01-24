@@ -44,9 +44,17 @@
         
         $./run.py ESAModel -c expt/conf/conf-chinese.xml -lookup
         
-7. 链接数据库的构建: 构建维基页面的入链和出链关系，为WLM相关度计算准备数据
+7. 建立维基百科文章、类别对象的标题和ID的双向映射关系
         
-        $./run.py LinkDb -c expt/conf/conf-chinese.xml -build
+        $./run.py WikiNameIdMapper -c expt/conf/conf-chinese.xml -build
+        
+8. 处理维基百科文章的重定向、类别关系
+
+        $./run.py ArticleCache -c expt/conf/conf-chinese.xml -build
+
+7. 链接数据库的构建: 构建维基页面的入链和出链关系，为WLM相关度计算准备数据
+
+        $./run.py LinkCache -c expt/conf/conf-chinese.xml -build
         
         
 # Reference

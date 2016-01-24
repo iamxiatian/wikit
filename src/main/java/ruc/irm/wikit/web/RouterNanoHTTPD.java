@@ -10,13 +10,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.net.URI;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -61,6 +56,35 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         public abstract IStatus getStatus();
 
         public abstract InputStream getData();
+
+        protected Map<String, String>  decodeParameters(NanoHTTPD
+                                                                 .IHTTPSession session) {
+            Map<String, String> params = new HashMap<>();
+            try {
+                session.parseBody(params);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            String queryParameterString = session.getQueryParameterString();
+            HashMap<String, String> parms = new HashMap();
+            if(queryParameterString != null) {
+                StringTokenizer st = new StringTokenizer(queryParameterString, "&");
+
+                while(st.hasMoreTokens()) {
+                    String e = st.nextToken();
+                    int sep = e.indexOf(61);
+                    String propertyName = sep >= 0?decodePercent(e.substring(0, sep)).trim():decodePercent(e).trim();
+
+                    String propertyValue = sep >= 0?decodePercent(e.substring(sep + 1)):null;
+                    if(propertyValue != null) {
+                        parms.put(propertyName, propertyValue);
+                    }
+                }
+            }
+
+            return parms;
+        }
 
         public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
             return NanoHTTPD.newChunkedResponse(getStatus(), getMimeType(), getData());

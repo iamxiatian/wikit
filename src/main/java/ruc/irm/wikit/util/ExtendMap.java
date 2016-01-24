@@ -11,4 +11,8 @@ public class ExtendMap<K, V> extends HashMap<K, V> {
         put(key, value);
         return this;
     }
+
+    public static ExtendMap<String, Object> newMap() {
+        return new ExtendMap<String, Object>();
+    }
 }
