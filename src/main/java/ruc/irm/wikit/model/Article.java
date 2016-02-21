@@ -20,9 +20,7 @@
 package ruc.irm.wikit.model;
 
 import ruc.irm.wikit.db.je.WEnvironment;
-import ruc.irm.wikit.db.je.struct.DbPage;
-
-import java.util.*;
+import ruc.irm.wikit.db.je.struct.PageRecord;
 
 /**
  * Represents articles in Wikipedia; the pages that contain descriptive text regarding a particular topic. 
@@ -41,7 +39,7 @@ public class Article extends Page {
 		super(env, id) ;
 	}
 
-	protected Article(WEnvironment env, int id, DbPage pd) {
+	protected Article(WEnvironment env, int id, PageRecord pd) {
 		super(env, id, pd) ;
 	}
 

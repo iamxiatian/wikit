@@ -365,25 +365,27 @@ public class ESAModelImpl implements ESAModel, Closeable {
      * adjust vector by inlinks.
      */
     public ConceptVector getCombinedVector(String query) throws WikitException {
-        ConceptVector cvBase = getConceptVector(query);
-        int limit = 50;
-        //process top limit inlinks
-        if (cvBase == null) {
-            LOG.warn("concept vector is null for query {}", query);
-            return null;
-        }
-
-//        ConceptVector cvNormal = trimVector(cvBase, 10);
-//        ConceptVector cvLink = getLinkVector(cvNormal, 10);
-
-        ConceptVector cvLink = getLinkVector(cvBase, limit);
-        cvBase.add(cvLink);
-        return cvBase;
+//        ConceptVector cvBase = getConceptVector(query);
+//        int limit = 50;
+//        //process top limit inlinks
+//        if (cvBase == null) {
+//            LOG.warn("concept vector is null for query {}", query);
+//            return null;
+//        }
+//
+////        ConceptVector cvNormal = trimVector(cvBase, 10);
+////        ConceptVector cvLink = getLinkVector(cvNormal, 10);
+//
+//        ConceptVector cvLink = getLinkVector(cvBase, limit);
+//        cvBase.add(cvLink);
+//        return cvBase;
+        return getCombinedVector(query, true, false, 50);
     }
 
     @Override
     public ConceptVector getCombinedVector(String text, int limit) throws WikitException {
-        return trimVector(getCombinedVector(text), limit);
+        //return trimVector(getCombinedVector(text), limit);
+        return getCombinedVector(text, true, false, limit);
     }
 
     /**
@@ -450,7 +452,7 @@ public class ESAModelImpl implements ESAModel, Closeable {
         return pageViewVector;
     }
 
-    public ConceptVector getCombinedVector(String query, boolean considerLinks, boolean considerPageViews, int limit) throws WikitException, SQLException {
+    public ConceptVector getCombinedVector(String query, boolean considerLinks, boolean considerPageViews, int limit) throws WikitException {
         ConceptVector cvBase = getConceptVector(query);
 
         LOG.debug("process top " + limit + " inlinks...");
@@ -483,6 +485,8 @@ public class ESAModelImpl implements ESAModel, Closeable {
 
         return cvNormal;
     }
+
+
 
     public void close() {
         conceptCache.close();

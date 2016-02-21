@@ -78,6 +78,12 @@ dependencies {
 
             'org.freemarker:freemarker:2.3.23',
             'org.nanohttpd:nanohttpd:2.2.0',
+
+            //machine learning library
+            'net.sf.jwordnet:jwnl:1.4_rc3',
+			'com.googlecode.matrix-toolkits-java:mtj:0.9.14',
+			'org.jdom:jdom:1.1',
+            'org.beanshell:bsh:2.0b4',
     )
     testCompile('junit:junit:4.11',)
 }

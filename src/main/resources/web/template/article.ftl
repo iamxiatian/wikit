@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<#include "inc_head.ftl">
-		<title>${title!}</title>
+		<title>Article: ${title!}</title>
 
 		<style>
 		.label{color:blue; margin-left: 5px;}
@@ -15,6 +15,7 @@
 	<div>
 		id: ${id} <br/>
 		name: ${title!} <br/>
+		alias: <#list aliasNames as name>${name} </#list><br/>
 		links: <#list links as link>
 		<span class="label">
 			<a href="/wiki/article?name=${link}">${link}</a>

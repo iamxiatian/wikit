@@ -1,17 +1,13 @@
 package ruc.irm.wikit.db.je;
 
 import com.sleepycat.je.*;
-import org.apache.commons.cli.*;
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
-import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.db.je.WDatabase.DatabaseType;
-import ruc.irm.wikit.db.je.struct.DbPage;
+import ruc.irm.wikit.db.je.struct.PageRecord;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 
 /**
@@ -24,7 +20,7 @@ public class WEnvironment {
 
     private Conf conf ;
 	private Environment env ;
-	private WDatabase<Integer, DbPage> dbPage ;
+	private WDatabase<Integer, PageRecord> dbPage ;
 	private WDatabase<String,Integer> dbArticlesByTitle;
     private WDatabase<String,Integer> dbCategoriesByTitle ;
     ;
@@ -95,7 +91,7 @@ public class WEnvironment {
      *
      * @return see {@link DatabaseType#page}
      */
-    public WDatabase<Integer, DbPage> getDbPage() {
+    public WDatabase<Integer, PageRecord> getDbPage() {
         return dbPage;
     }
 

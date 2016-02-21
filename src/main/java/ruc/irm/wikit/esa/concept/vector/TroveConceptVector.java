@@ -3,6 +3,7 @@ package ruc.irm.wikit.esa.concept.vector;
 import gnu.trove.iterator.TIntDoubleIterator;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 import gnu.trove.procedure.TDoubleProcedure;
+import gnu.trove.procedure.TIntProcedure;
 
 import java.io.Serializable;
 

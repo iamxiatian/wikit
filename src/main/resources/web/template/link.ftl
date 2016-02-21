@@ -2,13 +2,13 @@
 <html>
 	<head>
 		<#include "inc_head.ftl">
-		<title>Inlinks and Outlinks</title>
+		<title>Links - ${name}</title>
 	</head>
 	<body>
 	<#include "header.html">
 	<p>
 		id: ${id} <br/>
-		name: ${name} <br/>
+		name: <a href="/wiki/article/${id}">${name}</a> <br/>
 		alias:<#list alias as a>${a} </#list>
 	</p>
 

@@ -20,6 +20,8 @@ public class WDatabase<K,V> {
          */
         page,
 
+        redirect,
+
         /**
          * Associates String labels with the statistics about the articles (senses) these labels could refer to
          */

@@ -47,6 +47,12 @@ public class WikiPage {
 
     private String plainText = null;
     private List<String> internalLinks = null;
+
+    public List<Link> getPageLinks() {
+        return pageLinks;
+    }
+
+    private List<Link> pageLinks = new ArrayList<>();
     private Set<String> categories = null;
 
     /** 网页的别名，指向当前网页的redirect网页名称集合, 由于处理的需要，初始值设为空，
@@ -207,6 +213,7 @@ public class WikiPage {
             if (link.getType() == Link.type.INTERNAL) {
                 internalLinks.add(link.getTarget());
             }
+            pageLinks.add(link);
         }
     }
 

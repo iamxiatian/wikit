@@ -9,6 +9,8 @@ import gnu.trove.set.TIntSet;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.common.exception.MissedException;
@@ -27,7 +29,7 @@ import java.util.Map;
  * @date Jan 22, 2016 11:30 PM
  */
 public abstract class BaseFreemarkerHandler extends RouterNanoHTTPD.DefaultHandler {
-    public static Conf conf = ConfFactory.createConf("expt/conf/conf-chinese.xml", true);
+    protected Logger LOG = LoggerFactory.getLogger(this.getClass());
 
     public BaseFreemarkerHandler() {
 

@@ -23,9 +23,13 @@ import java.io.IOException;
  */
 public class WikiNameIdMapper {
     private Conf conf = null;
+    private boolean cacheArticle = true;
+    private boolean cacheCategory = false;
 
-    public WikiNameIdMapper(Conf conf) {
+    public WikiNameIdMapper(Conf conf, boolean cacheArticle, boolean cacheCategory) {
         this.conf = conf;
+        this.cacheArticle = cacheArticle;
+        this.cacheCategory = cacheCategory;
     }
 
     /**
@@ -43,10 +47,10 @@ public class WikiNameIdMapper {
                     return; //skip redirect page
                 }
 
-                if (wikiPage.isArticle()) {
+                if (wikiPage.isArticle() && cacheArticle) {
                     articleMapper.saveNameIdMapping(wikiPage.getTitle(),
                             wikiPage.getId());
-                } else if (wikiPage.isCategory()) {
+                } else if (wikiPage.isCategory() && cacheCategory) {
                     categoryMapper.saveNameIdMapping(wikiPage.getCategoryTitle(),
                             wikiPage.getId());
                 }
@@ -55,8 +59,8 @@ public class WikiNameIdMapper {
 
             @Override
             public void close() {
-                categoryMapper.finishNameIdMapping();
-                articleMapper.finishNameIdMapping();
+                if(cacheCategory) categoryMapper.finishNameIdMapping();
+                if(cacheArticle) articleMapper.finishNameIdMapping();
             }
 
         });
@@ -72,6 +76,8 @@ public class WikiNameIdMapper {
         Options options = new Options();
         options.addOption(new Option("c", true, "config file"));
         options.addOption(new Option("build", false, "Mapping Name-Id "));
+        options.addOption(new Option("ca", false, "cache article"));
+        options.addOption(new Option("cc", false, "cache category"));
 
         CommandLine commandLine = parser.parse(options, args);
         if (!commandLine.hasOption("c")) {
@@ -80,7 +86,9 @@ public class WikiNameIdMapper {
         }
 
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
-        WikiNameIdMapper mapper = new WikiNameIdMapper(conf);
+        boolean cacheArticle = commandLine.hasOption("ca");
+        boolean cacheCategory = commandLine.hasOption("cc");
+        WikiNameIdMapper mapper = new WikiNameIdMapper(conf, cacheArticle, cacheCategory);
 
         if (commandLine.hasOption("build")) {
             System.out.println("Start build name-id mapping relation...");

@@ -8,7 +8,6 @@ import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 import ruc.irm.wikit.db.je.WDatabase;
 import ruc.irm.wikit.db.je.WDatabase.DatabaseType;
 import ruc.irm.wikit.db.je.WEnvironment;
-import ruc.irm.wikit.db.je.struct.DbPage;
 
 import java.io.IOException;
 

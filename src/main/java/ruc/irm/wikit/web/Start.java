@@ -15,6 +15,9 @@ import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.IStatus;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 import fi.iki.elonen.util.ServerRunner;
+import org.apache.commons.cli.*;
+import ruc.irm.wikit.common.conf.Conf;
+import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.web.handler.*;
 
 public class Start extends RouterNanoHTTPD {
@@ -123,6 +126,7 @@ public class Start extends RouterNanoHTTPD {
         addRoute("/wiki/article/:id", WikiArticleHandler.class);
         addRoute("/wiki/link/:id", WikiLinkHandler.class);
 
+        addRoute("/relatedness", RelatednessHandler.class);
         addRoute("/esa", ESAHandler.class);
 
         //addRoute("relatedness/index", );
@@ -146,7 +150,24 @@ public class Start extends RouterNanoHTTPD {
      *
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParseException {
+        String helpMsg = "usage: ./run Start -c config.xml";
+
+        HelpFormatter helpFormatter = new HelpFormatter();
+        CommandLineParser parser = new PosixParser();
+        Options options = new Options();
+        options.addOption(new Option("c", true, "config file"));
+        CommandLine commandLine = parser.parse(options, args);
+        if (!commandLine.hasOption("c")) {
+            helpFormatter.printHelp(helpMsg, options);
+            return;
+        }
+
+        Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
+
+        System.out.println("Init web context ...");
+        WebContex.getInstance().setConf(conf);
+
         ServerRunner.run(Start.class);
     }
 }

@@ -1,6 +1,28 @@
 body{
     font-family: monospace, Microsoft Yahei;
+    margin-left: 20px;
 }
-.link {
 
+.btn {
+    border:1px solid #EBEBFF;
+    padding:5px;
+    margin-bottom:5px;
+    background-color:#EBEBEB;
+}
+
+button {
+    padding:5px;
+    color:black;
+}
+
+input {
+    border: 1px solid black;
+    padding:3px;
+}
+ul li {
+    list-style: none;
+}
+a.btn{
+    text-decoration: none;
+    color:black;
 }

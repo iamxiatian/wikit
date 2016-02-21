@@ -67,3 +67,4 @@ Project
 --------------
 Wikipedia-Miner
 JWPL: https://www.ukp.tu-darmstadt.de/software/jwpl/
+Mallet: http://mallet.cs.umass.edu/ (update trove4j library to version 3.0.3)

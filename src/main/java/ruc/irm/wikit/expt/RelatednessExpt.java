@@ -6,6 +6,7 @@ import com.google.common.io.Files;
 import org.apache.commons.cli.*;
 import org.apache.commons.compress.utils.IOUtils;
 import ruc.irm.wikit.cache.ArticleCache;
+import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.esa.ESAModel;
@@ -41,6 +42,9 @@ public class RelatednessExpt {
     private RelatednessExpt(Conf conf) {
         this.conf = conf;
         this.type = MethodType.WLM;
+        this.esaModel = new ESAModelImpl(conf);
+        this.linkRelatedness = new LinkRelatedness(conf);
+        this.articleCache = new ArticleCacheRedisImpl(conf);
     }
 
     private double getRelatedness(String word1, String word2) {
@@ -56,10 +60,13 @@ public class RelatednessExpt {
                 System.out.println("Page does not exist for " + word2);
             }
 
-            return linkRelatedness.getRelatedness(p1, p2);
+            if(p1==0 || p2==0) {
+                return -1;
+            } else {
+                return linkRelatedness.getRelatedness(p1, p2);
+            }
         }
-
-        return 0;
+        return -1;
     }
 
     /**
@@ -75,7 +82,7 @@ public class RelatednessExpt {
      * @param input 输入文件
      * @param output
      */
-    public void calculateByESA(File input, File output) throws IOException {
+    public void calculate(File input, File output) throws IOException {
         StringBuilder rawValues = new StringBuilder();
         StringBuilder calculatedValues = new StringBuilder();
         BufferedWriter writer = Files.newWriter(output, Charsets.UTF_8);
@@ -94,6 +101,9 @@ public class RelatednessExpt {
             String secondWord = parts.get(1);
             String rawValue = parts.get(2);
             double relatedness = getRelatedness(firstWord, secondWord);
+
+            if(relatedness<0) continue; //skip
+
             String newValue =  String.format("%.4f", relatedness);
             writer.write(line + "\t" + newValue+"\n");
 
@@ -147,7 +157,9 @@ public class RelatednessExpt {
             System.out.println("type must be esa or wlm");
             return;
         }
-        expt.calculateByESA(new File(in), new File(out));
+
+        expt.calculate(new File(in), new File(out));
+
         System.out.println("I'm DONE!");
     }
 

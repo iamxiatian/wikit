@@ -22,6 +22,7 @@ import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.esa.concept.vector.ConceptIterator;
 import ruc.irm.wikit.esa.concept.vector.ConceptVector;
 import ruc.irm.wikit.util.ExtendMap;
+import ruc.irm.wikit.web.WebContex;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,8 +39,8 @@ public class ESAHandler extends BaseFreemarkerHandler {
     private ConceptCache conceptCache = null;
 
     public ESAHandler() {
-        this.esaModel = new ESAModelImpl(conf);
-        this.conceptCache = new ConceptCacheRedisImpl(conf);
+        this.esaModel = new ESAModelImpl(WebContex.getInstance().getConf());
+        this.conceptCache = new ConceptCacheRedisImpl(WebContex.getInstance().getConf());
     }
 
     @Override

@@ -60,7 +60,7 @@ public class WikiCacheBuilder {
                 if (wikiPage.isRedirect() && wikiPage.isArticle()) {
                     int toId = artCache.getIdByName(wikiPage.getRedirect(), -1);
                     if (toId>0) {
-                        artCache.saveAlias(toId, wikiPage.getTitle());
+                        //artCache.saveAlias(toId, wikiPage.getTitle());
                     }
                     return;
                 }
@@ -76,7 +76,7 @@ public class WikiCacheBuilder {
                 artCache.saveCategories(pageId, wikiPage.getCategories());
 
                 //保存wikiPage自身已经识别出的别名
-                artCache.saveAlias(pageId, wikiPage.getAliases());
+                //artCache.saveAlias(pageId, wikiPage.getAliases());
             }
 
             private void buildCategoryCache(WikiPage wikiPage) throws MissedException {

@@ -30,42 +30,15 @@ public interface ArticleCache extends NameIdMapping, Cache {
     List<Integer> getAllIdsByName(String name);
 
     /**
-     * Save redirect info:<br/>
-     * For example:
-     *  100, "习大大", redirect to 101, "习近平", then we have:
-     *  <ul>
-     *      <li>习大大: {id:100, rto: {101,...}}</li>
-     *      <li>习近平: {id:1001, rf:{100,...}}</li>
-     *  </ul>
-     */
-    void saveAlias(int pageId, Iterable<String> aliasNames)
-            throws MissedException;
-
-    void saveAlias(int pageId, String aliasName)
-            throws MissedException;
-
-    boolean hasAlias(int pageId);
-
-    Collection<String> getAliasNames(int pageId);
-
-    /**
-     * Get target page id by alias name, if the alias does not exist, return 0.
+     * if not exist, return 0
      * @param name
      * @return
      */
-    int getIdByAliasName(String name);
-
     int getIdByNameOrAlias(String name);
 
     void saveCategories(int pageId, Set<String> categories) throws MissedException;
 
     Set<Integer> getCategories(int pageId) throws MissedException;
-
-    /**
-     * 构建文章缓存数据库
-     */
-    void buildAlias(WikiPageDump dump) throws IOException;
-
 
     public static void main(String[] args) throws ParseException, IOException {
         String helpMsg = "usage: ArticleCache -c config.xml";
@@ -74,7 +47,7 @@ public interface ArticleCache extends NameIdMapping, Cache {
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
         options.addOption(new Option("c", true, "config file"));
-        options.addOption(new Option("build", false, "build alias"));
+        options.addOption(new Option("clear", false, "clear article cache"));
         options.addOption(new Option("test", false, "loop test on terminal"));
 
         CommandLine commandLine = parser.parse(options, args);
@@ -86,10 +59,8 @@ public interface ArticleCache extends NameIdMapping, Cache {
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         ArticleCache cache = new ArticleCacheRedisImpl(conf);
 
-        if (commandLine.hasOption("build")) {
-            WikiPageDump dump = new PageXmlDump(conf);
-            cache.buildAlias(dump);
-            System.out.println("I'm DONE!");
+        if(commandLine.hasOption("clear")) {
+            cache.clearAll();
         } else if (commandLine.hasOption("test")) {
             Scanner scanner = new Scanner(System.in);
             String input = null;
@@ -123,5 +94,8 @@ public interface ArticleCache extends NameIdMapping, Cache {
 
             System.out.println("Bye!");
         }
+
+
+        System.out.println("I'm DONE!");
     }
 }

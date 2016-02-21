@@ -1,7 +1,7 @@
 package ruc.irm.wikit.model;
 
 import ruc.irm.wikit.db.je.WEnvironment;
-import ruc.irm.wikit.db.je.struct.DbPage;
+import ruc.irm.wikit.db.je.struct.PageRecord;
 
 /**
  * Represents pages of any type in Wikipedia
@@ -65,7 +65,7 @@ public class Page implements Comparable<Page> {
 	 * @param	id	the unique identifier of the page
 	 * @param	pd  details (title, type, etc) of the page	 
 	 */
-	protected Page(WEnvironment env, int id, DbPage pd)  {
+	protected Page(WEnvironment env, int id, PageRecord pd)  {
 		this.env = env ;
 		this.id = id ;
 		setDetails(pd) ;
@@ -228,12 +228,12 @@ public class Page implements Comparable<Page> {
 	 */
 	public static Page createPage(WEnvironment env, int id)  {
 
-		DbPage pd = env.getDbPage().retrieve(id) ;
+		PageRecord pd = env.getDbPage().retrieve(id) ;
 
 		if (pd != null)
 			return createPage(env, id, pd) ;
 		else {
-			pd = new DbPage(0, "Invalid id or excluded via caching", PageType.invalid.ordinal(), "") ;
+			pd = new PageRecord(0, "Invalid id or excluded via caching", PageType.invalid.ordinal(), "") ;
 			return new Page(env, id, pd) ;
 		}
 	}
@@ -246,7 +246,7 @@ public class Page implements Comparable<Page> {
 	 * @param pd the details of the page
 	 * @return the instantiated page, which can be safely cast as appropriate
 	 */
-	public static Page createPage(WEnvironment env, int id, DbPage pd) {
+	public static Page createPage(WEnvironment env, int id, PageRecord pd) {
 
 		Page p = null ;
 
@@ -276,7 +276,7 @@ public class Page implements Comparable<Page> {
 	private void setDetails()  {
 
 		try {
-			DbPage pd = env.getDbPage().retrieve(id) ;
+			PageRecord pd = env.getDbPage().retrieve(id) ;
 
 			if (pd == null) {
 				throw new Exception() ;
@@ -289,7 +289,7 @@ public class Page implements Comparable<Page> {
 		}
 	}
 
-	private void setDetails(DbPage pd)  {
+	private void setDetails(PageRecord pd)  {
 		title = pd.getTitle() ;
 		type = PageType.values()[pd.getType()] ;
 		content = pd.getText();

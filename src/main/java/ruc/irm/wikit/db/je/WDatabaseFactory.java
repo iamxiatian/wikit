@@ -2,17 +2,8 @@ package ruc.irm.wikit.db.je;
 
 import com.sleepycat.bind.tuple.IntegerBinding;
 import com.sleepycat.bind.tuple.StringBinding;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseEntry;
-import ruc.irm.wikit.data.dump.impl.PageXmlDump;
-import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.db.je.WDatabase.DatabaseType;
-import ruc.irm.wikit.db.je.struct.DbPage;
-import ruc.irm.wikit.util.ProgressCounter;
-import ruc.irm.wikit.util.ProgressTracker;
-
-import java.io.*;
-import java.util.List;
+import ruc.irm.wikit.db.je.struct.PageRecord;
 
 
 /**
@@ -30,15 +21,15 @@ public class WDatabaseFactory {
 	 * 
 	 * @return a database associating page ids with the title, type and generality of the page. 
 	 */
-	public WDatabase<Integer, DbPage> buildPageDatabase() {
+	public WDatabase<Integer, PageRecord> buildPageDatabase() {
 
-		RecordBinding<DbPage> keyBinding = new RecordBinding<DbPage>() {
-			public DbPage createRecordInstance() {
-				return new DbPage() ;
+		RecordBinding<PageRecord> keyBinding = new RecordBinding<PageRecord>() {
+			public PageRecord createRecordInstance() {
+				return new PageRecord() ;
 			}
 		} ;
 
-		return new WDatabase<Integer, DbPage>(
+		return new WDatabase<Integer, PageRecord>(
 				env,
 				DatabaseType.page,
 				new IntegerBinding(),

@@ -22,7 +22,7 @@ package ruc.irm.wikit.db.je.it;
 import ruc.irm.wikit.db.je.WEntry;
 import ruc.irm.wikit.db.je.WEnvironment;
 import ruc.irm.wikit.db.je.WIterator;
-import ruc.irm.wikit.db.je.struct.DbPage;
+import ruc.irm.wikit.db.je.struct.PageRecord;
 import ruc.irm.wikit.model.Page;
 import ruc.irm.wikit.model.Page.PageType;
 
@@ -38,7 +38,7 @@ import java.util.NoSuchElementException;
 public class PageIterator implements Iterator<Page> {
 
 	WEnvironment env ;
-	WIterator<Integer,DbPage> iter ;
+	WIterator<Integer,PageRecord> iter ;
 
 	Page nextPage = null ;
 	PageType type = null ;
@@ -99,7 +99,7 @@ public class PageIterator implements Iterator<Page> {
 		}
 	}
 
-	private Page toPage(WEntry<Integer,DbPage> e) {
+	private Page toPage(WEntry<Integer,PageRecord> e) {
 		if (e== null)
 			return null ;
 		else

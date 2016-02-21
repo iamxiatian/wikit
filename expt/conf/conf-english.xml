@@ -8,7 +8,8 @@
     <!-- the main working dir -->
     <property>
         <name>work.dir</name>
-        <value>${user.home}/esa/english</value>
+        <!-- <value>${user.home}/esa/english</value> -->
+        <value>/media/xiatian/Elements/esa/english</value>
         <description>存放系统产生的各类数据文件的目录</description>
     </property>
 
@@ -86,22 +87,6 @@
     </property>
 
     <property>
-        <name>cache.file.concept</name>
-        <value>${cache.dir.main}/cache.concept.twitter.gz</value>
-    </property>
-
-    <property>
-        <name>esa.model.dir</name>
-        <value>${work.dir}/model/esa_en</value>
-        <description>model dir for ESA</description>
-    </property>
-
-    <property>
-        <name>esa.index.dir</name>
-        <value>${index.dir.main}/esa_en</value>
-    </property>
-
-    <property>
         <name>esa.language</name>
         <value>English</value>
         <description>the language of data for ESA process, it should be Chinese or English </description>
@@ -111,5 +96,30 @@
         <name>esa.model.title.boost</name>
         <value>1.2</value>
         <description>Boost title field when build ESA model(see IndexMining class)</description>
+    </property>
+
+
+    <property>
+        <name>wiki.stop.filter.min.links</name>
+        <value>20</value>
+        <final>true</final>
+        <description>If a wiki page's inlink and outlink count is less than
+            this property, then remove it to construct esa model
+            .</description>
+    </property>
+
+    <property>
+        <name>wiki.stop.filter.min.words</name>
+        <value>200</value>
+        <final>true</final>
+        <description>If a wiki page's no stop words is less than this
+            property, then remove it.</description>
+    </property>
+
+    <property>
+        <name>wiki.dump.file</name>
+        <value>${work.dir}/data/wiki/enwiki-20140304-pages-articles-multistream.xml.bz2</value>
+        <final>true</final>
+        <description></description>
     </property>
 </configuration>

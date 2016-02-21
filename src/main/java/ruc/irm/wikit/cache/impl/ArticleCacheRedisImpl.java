@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
+import ruc.irm.wikit.cache.RedirectCache;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.cache.ArticleCache;
@@ -16,6 +17,7 @@ import ruc.irm.wikit.data.dump.impl.PageXmlDump;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 import ruc.irm.wikit.util.NumberUtils;
+import ruc.irm.wikit.util.ProgressCounter;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -35,12 +37,13 @@ import java.util.stream.Collectors;
 public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
         Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ArticleCacheRedisImpl.class);
-
+    private Conf conf;
     private String prefix = "";
     private Jedis jedis = null;
     private NameIdMapping categoryNameIdMapping = null;
 
     public ArticleCacheRedisImpl(Conf conf) {
+        this.conf = conf;
         this.prefix = conf.getRedisPrefix();
         this.jedis = new Jedis(conf.getRedisHost(), conf.getRedisPort(), conf.getRedisTimeout());
         this.categoryNameIdMapping = new CategoryCacheRedisImpl(conf);
@@ -145,82 +148,22 @@ public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
     @Override
     public void finishNameIdMapping() {
         String key = (prefix + "va:cnf");
-        jedis.hset(key,"nameIdMapped", "true");
+        jedis.hset(key, "nameIdMapped", "true");
     }
 
     @Override
     public boolean nameIdMapped() {
         String key = (prefix + "va:cnf");
-        String value = jedis.hget(key,"nameIdMapped");
+        String value = jedis.hget(key, "nameIdMapped");
         return "true".equals(value);
-    }
-
-
-    /////////////////////////////////////////////
-    //MainPageCache Implementation below
-    /////////////////////////////////////////////
-    @Override
-    public void saveAlias(int pageId, String aliasName)
-            throws MissedException {
-        Set<String> set = new HashSet<>();
-        set.add(aliasName);
-        saveAlias(pageId, set);
-    }
-
-    @Override
-    public void saveAlias(int pageId, Iterable<String> aliasNames)
-            throws MissedException {
-        byte[] key = makePageKey(pageId);
-        byte[] value = jedis.hget(key, HKEY_ALIAS);
-        Collection<String> list = getAliasNames(pageId);
-
-        boolean changed = false;
-        for (String name : aliasNames) {
-            if (!list.contains(name)) {
-                list.add(name);
-                changed = true;
-            }
-        }
-
-        if(changed) {
-            String s = Joiner.on("\n").join(list);
-            jedis.hset(key, HKEY_ALIAS, s.getBytes(ENCODING));
-        }
-    }
-
-    @Override
-    public boolean hasAlias(int pageId) {
-        byte[] key = makePageKey(pageId);
-        return jedis.hexists(key, HKEY_ALIAS);
-    }
-
-    @Override
-    public Collection<String> getAliasNames(int pageId) {
-        byte[] key = makePageKey(pageId);
-        byte[] value = jedis.hget(key, HKEY_ALIAS);
-        if (value == null) {
-            return new HashSet<>();
-        } else {
-            String s = new String(value, ENCODING);
-            return Lists.newArrayList(Splitter.on('\n')
-                    .omitEmptyStrings()
-                    .trimResults()
-                    .splitToList(s));
-        }
-    }
-
-    @Override
-    public int getIdByAliasName(String name) {
-        byte[] key = (prefix + "va:alias2id").getBytes(ENCODING);
-        byte[] value = jedis.hget(key, name.toLowerCase().getBytes(ENCODING));
-        return value==null?0:NumberUtils.bytes2Int(value);
     }
 
     @Override
     public int getIdByNameOrAlias(String name) {
         int id = getIdByName(name, -1);
         if (id < 0) {
-            id = getIdByAliasName(name);
+            RedirectCache redirectCache = new RedirectCacheRedisImpl(conf);
+            id = redirectCache.getRedirectToId(name, 0);
         }
         return id;
     }
@@ -248,62 +191,6 @@ public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
         byte[] key = makePageKey(pageId);
         byte[] value = jedis.hget(key, HKEY_CATEGORIES);
         return NumberUtils.bytes2IntSet(value);
-    }
-
-    @Override
-    public void buildAlias(WikiPageDump dump) throws IOException {
-        clearAll();
-
-        //建立文章所拥有的别名映射关系
-        dump.traverse(new WikiPageFilter() {
-            @Override
-            public void process(WikiPage wikiPage, int index) {
-                //Process redirect article
-                if (wikiPage.isRedirect() && wikiPage.isArticle()) {
-                    int toId = getIdByName(wikiPage.getRedirect(), -1);
-                    if (toId > 0) {
-                        try {
-                            saveAlias(toId, wikiPage.getTitle());
-                        } catch (MissedException e) {
-                            LOG.error(e.toString());
-                        }
-                    }
-                    return;
-                }
-
-                if (!wikiPage.isArticle()) {
-                    return;
-                }
-
-                int pageId = getIdByName(wikiPage.getTitle(), -1);
-                if (pageId < 0) return; //skip page that was not in cache
-
-                Collection<String> categories = wikiPage.getCategories();
-                saveCategories(pageId, wikiPage.getCategories());
-
-                //保存wikiPage自身已经识别出的别名
-                try {
-                    saveAlias(pageId, wikiPage.getAliases());
-                } catch (MissedException e) {
-                    LOG.error(e.toString());
-                }
-            }
-        });
-
-        done();
-
-        //建立别名到目标文章的映射关系
-        byte[] key = (prefix + "va:alias2id").getBytes(ENCODING);
-        Set<Integer> ids = listIds();
-        for (int id : ids) {
-            Collection<String> names = getAliasNames(id);
-            for (String name : names) {
-                byte[] value = NumberUtils.int2Bytes(id);
-                jedis.hset(key, name.toLowerCase().getBytes(ENCODING), value);
-            }
-        }
-
-        jedis.hset((prefix + "va:cnf"), "aliasIdMapped", "true");
     }
 
     @Override
@@ -340,13 +227,17 @@ public class ArticleCacheRedisImpl implements ArticleCache,NameIdMapping,
 
     @Override
     public void clearAll() {
-        //@TODO
-        System.out.println("not finished yet.");
+        Set<byte[]> keys = jedis.keys((prefix+"va:*").getBytes());
+        ProgressCounter counter = new ProgressCounter(keys.size());
+        for (byte[] key : keys) {
+            jedis.del(key);
+            counter.increment();
+        }
+        counter.done();
     }
 
     /**
      * 一个网页对象可以包含的哈希对象主键
      */
-    private static final byte[] HKEY_ALIAS = "a".getBytes(ENCODING);
     private static final byte[] HKEY_CATEGORIES = "c".getBytes(ENCODING);
 }
