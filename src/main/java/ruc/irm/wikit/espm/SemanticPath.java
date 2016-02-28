@@ -40,6 +40,10 @@ public class SemanticPath {
         this.weights.add(weight);
     }
 
+    public String getPathString() {
+        return getPathString('/');
+    }
+
     public String getPathString(char seprator) {
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i < nodeIds.size(); i++) {

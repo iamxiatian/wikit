@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<#include "inc_head.ftl">
-		<title>Explicit Semantic Analysis(ESA)</title>
+		<title>Explicit Semantic Analysis(ESA & ESPM)</title>
 	</head>
 	<body>
 	<#include "header.html">
@@ -11,11 +11,20 @@
 			<textarea class="form-control" name="t"
 			          style="width:600px;height:100px;">${t!"微博"}</textarea>
 			<br/>
-			<button type="submit">ESA Analyze</button>
+			<button type="submit">Analyze</button>
         </form>
 	</div>
 	<div>
+		Explicit Semantic Paths:
+			<ol>
+				<#if paths?exists>
+				    <#list paths as path>
+				        <li>${path.pathString}</li>
+				    </#list>
+				</#if>
+			</ol>
 		    <ol>
+        Explicit Concepts:
 		    <#if concepts?exists>
 		    <#list concepts as c>
                 <li>

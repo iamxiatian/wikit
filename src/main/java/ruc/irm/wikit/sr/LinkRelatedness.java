@@ -42,6 +42,7 @@ public class LinkRelatedness {
         if (inlinks1.isEmpty() || inlinks2.isEmpty()) {
             return 0.0;
         }
+
         int a = inlinks1.size();
         int b = inlinks2.size();
         TIntSet intersection = new TIntHashSet(inlinks1.toArray());

@@ -21,6 +21,9 @@ import ruc.irm.wikit.esa.concept.ConceptCache;
 import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.esa.concept.vector.ConceptIterator;
 import ruc.irm.wikit.esa.concept.vector.ConceptVector;
+import ruc.irm.wikit.espm.SemanticPath;
+import ruc.irm.wikit.espm.SemanticPathMining;
+import ruc.irm.wikit.espm.impl.SemanticPathMiningWikiImpl;
 import ruc.irm.wikit.util.ExtendMap;
 import ruc.irm.wikit.web.WebContex;
 
@@ -36,10 +39,12 @@ import java.util.Map;
  */
 public class ESAHandler extends BaseFreemarkerHandler {
     private ESAModel esaModel = null;
+    private SemanticPathMining espmModel = null;
     private ConceptCache conceptCache = null;
 
-    public ESAHandler() {
+    public ESAHandler() throws WikitException {
         this.esaModel = new ESAModelImpl(WebContex.getInstance().getConf());
+        this.espmModel = new SemanticPathMiningWikiImpl(WebContex.getInstance().getConf());
         this.conceptCache = new ConceptCacheRedisImpl(WebContex.getInstance().getConf());
     }
 
@@ -71,6 +76,9 @@ public class ESAHandler extends BaseFreemarkerHandler {
                         list.add(record);
                     }
                     root.put("concepts", list);
+
+                    List<SemanticPath> paths = espmModel.getSemanticPaths(text, 50, 10);
+                    root.put("paths", paths);
                 }
             } catch (WikitException e) {
                 root.put("msg", e.toString());

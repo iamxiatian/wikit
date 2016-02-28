@@ -130,10 +130,44 @@ public interface CategoryCache extends NameIdMapping, Cache {
     void findCycles(String startCatName) throws MissedException;
 
     /**
+     * Output the category info to text file, each line is:
+     *
+     * Parent name|Child name
+     *
+     * @param file
+     */
+    default void exportSimpleInfoToTxtFile(File file) {
+        if (!hasDone()) {
+            System.out.println("Category cache is not constructed yet.");
+        }
+        try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+            int count = 0;
+            for (int id : listIds()) {
+                String name = getNameById(id);
+                for(int childId: getChildIds(id)) {
+                    String child = getNameById(childId);
+                    writer.println(name + "|" + child);
+                }
+
+                if (++count % 1000 == 0) {
+                    System.out.print(count);
+                    System.out.print(" . ");
+                }
+            }
+            System.out.println(count);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (MissedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Output all the category name and corresponded article count
      * @param file
      */
-    default void exportToTxtFile(File file) {
+    default void exportFullInfoToTxtFile(File file) {
         if (!hasDone()) {
             System.out.println("Category cache is not constructed yet.");
         }
@@ -264,7 +298,7 @@ public interface CategoryCache extends NameIdMapping, Cache {
 
         if (commandLine.hasOption("export")) {
             String f = commandLine.getOptionValue("export");
-            cache.exportToTxtFile(new File(f));
+            cache.exportSimpleInfoToTxtFile(new File(f));
             System.out.println("I'm DONE for export.");
         }
 
