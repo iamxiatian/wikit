@@ -4,17 +4,22 @@ import cc.mallet.classify.*;
 import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.CsvIterator;
 import cc.mallet.pipe.iterator.FileIterator;
-import cc.mallet.types.InstanceList;
-import cc.mallet.types.LabelAlphabet;
-import cc.mallet.types.LabelSequence;
-import cc.mallet.types.Labeling;
+import cc.mallet.types.*;
 import cc.mallet.util.Randoms;
+import org.apache.commons.cli.*;
+import ruc.irm.wikit.nlp.libsvm.SVMClassifier;
+import ruc.irm.wikit.nlp.libsvm.SVMClassifierTrainer;
+import ruc.irm.wikit.nlp.libsvm.kernel.LinearKernel;
+import ruc.irm.wikit.util.mallet.PorterStemmerPipe;
 
 import java.io.*;
 import java.util.Iterator;
 
 /**
  * Test classification effects with ESPM support
+ *
+ * Example:
+ * ./run.py EspmClassify -dir /home/xiatian/data/20news-18828
  *
  * @author Tian Xia
  * @date Feb 24, 2016 11:17 AM
@@ -31,6 +36,8 @@ public class EspmClassify {
                 new Target2Label(),
                 new Input2CharSequence(),
                 new CharSequence2TokenSequence(),
+                new TokenSequenceRemoveStopwords(),
+                new PorterStemmerPipe(),
                 new TokenSequence2FeatureSequence(),
                 new FeatureSequence2FeatureVector ()}));
 
@@ -47,9 +54,27 @@ public class EspmClassify {
         //  classifier. Mallet includes a wide variety of classification
         //  algorithms, see the JavaDoc API for details.
 
-        NaiveBayesTrainer trainer = new NaiveBayesTrainer();
+        //NaiveBayesTrainer trainer = new NaiveBayesTrainer();
+        //SVMClassifierTrainer trainer = new SVMClassifierTrainer(new LinearKernel());
 
-        return trainer.train(trainingInstances);
+        //SVMClassifierTrainer baseTrainer = new SVMClassifierTrainer(new LinearKernel());
+        NaiveBayesTrainer baseTrainer = new NaiveBayesTrainer();
+
+        RankedFeatureVector.Factory ranker = new FeatureCounts.Factory();
+        FeatureSelector selector = new FeatureSelector(ranker, 50);
+
+        FeatureSelectingClassifierTrainer trainer = new FeatureSelectingClassifierTrainer
+                (baseTrainer, selector);
+
+
+        Classifier c = trainer.train(trainingInstances);
+//        Alphabet alphabet = c.getFeatureSelection().getAlphabet();
+//        Iterator it = alphabet.iterator();
+//        while (it.hasNext()) {
+//            Object obj = it.next();
+//            System.out.println(obj);
+//        }
+        return c;
     }
 
 
@@ -157,13 +182,17 @@ public class EspmClassify {
 
 
     public void printTrial(Trial trial) {
-        System.out.println("Accuracy: " + trial.getAccuracy());
+        System.out.println("Accuracy(Micro): " + trial.getAccuracy());
+        trial.getAverageRank();
         LabelAlphabet labelAlphabet = trial.getClassifier().getLabelAlphabet();
+        double macro = 0;
         for (int i = 0; i < labelAlphabet.size(); i++) {
             System.out.println("F1 for class '" +
                     labelAlphabet.lookupLabel(i) + "': " +
                     trial.getF1(i));
+            macro += trial.getF1(i);
         }
+        System.out.println("Macro:" + macro/labelAlphabet.size());
     }
 
     public Trial testTrainSplit(InstanceList instances) {
@@ -177,9 +206,11 @@ public class EspmClassify {
         //  randomly shuffling the copy, and then allocating
         //  instances to each sub-list based on the provided proportions.
 
-        InstanceList[] instanceLists =
-                instances.split(new Randoms(),
-                        new double[] {0.9, 0.1, 0.0});
+        //InstanceList[] instanceLists = instances.split(new Randoms(),  new double[] {0.9, 0.1, 0.0});
+        InstanceList[] instanceLists = instances.splitInTwoByModulo(5); //1份测试，9份训练
+
+        InstanceList trainList = instanceLists[1];
+        InstanceList testList = instanceLists[0];
 
         // The third position is for the "validation" set,
         //  which is a set of instances not used directly
@@ -189,14 +220,28 @@ public class EspmClassify {
         // Most Mallet ClassifierTrainers can not currently take advantage
         //  of validation sets.
 
-        Classifier classifier = trainClassifier( instanceLists[TRAINING] );
-        return new Trial(classifier, instanceLists[TESTING]);
+        Classifier classifier = trainClassifier(trainList);
+        return new Trial(classifier, testList);
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParseException {
+        HelpFormatter helpFormatter = new HelpFormatter();
+        CommandLineParser parser = new PosixParser();
+        Options options = new Options();
+        options.addOption(new Option("dir", true, "classification home folder."));
+
+
+        String name = EspmClassify.class.getSimpleName();
+        CommandLine commandLine = parser.parse(options, args);
+        if(!commandLine.hasOption("dir")) {
+            String usage = "Usage: run.py " + name + " -dir pathname";
+            helpFormatter.printHelp(usage, options);
+            return;
+        }
+
         EspmClassify classify = new EspmClassify();
-        File corpusDir = new File("/home/xiatian/data/20news-18828");
+        File corpusDir = new File(commandLine.getOptionValue("dir"));
         InstanceList instances = classify.load20NGInstances(corpusDir);
         Trial trial = classify.testTrainSplit(instances);
         classify.printTrial(trial);

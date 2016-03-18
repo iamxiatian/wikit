@@ -14,7 +14,9 @@ import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
 import ruc.irm.wikit.cache.impl.LinkCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.MissedException;
+import ruc.irm.wikit.common.exception.WikitException;
 import ruc.irm.wikit.expt.RelatednessExpt;
+import ruc.irm.wikit.sr.EspmRelatedness;
 import ruc.irm.wikit.sr.LinkRelatedness;
 import ruc.irm.wikit.web.WebContex;
 
@@ -32,12 +34,14 @@ public class RelatednessHandler extends BaseFreemarkerHandler {
     private LinkCache linkCache = null;
     private ArticleCache articleCache = null;
     private LinkRelatedness linkRelatedness;
+    private EspmRelatedness espmRelatedness;
 
-    public RelatednessHandler() {
+    public RelatednessHandler() throws WikitException {
         Conf conf = WebContex.getInstance().getConf();
         this.linkCache = new LinkCacheRedisImpl(conf);
         this.articleCache = new ArticleCacheRedisImpl(conf);
         this.linkRelatedness = new LinkRelatedness(conf);
+        this.espmRelatedness = new EspmRelatedness(conf);
     }
 
     @Override
@@ -68,6 +72,8 @@ public class RelatednessHandler extends BaseFreemarkerHandler {
         if (msg == null) {
             double relatedness = linkRelatedness.getRelatedness(id1, id2);
             root.put("relatedness", relatedness);
+
+            root.put("espmRelatedness", espmRelatedness.calculate(name1, name2));
 
             TIntSet inlinks1 = linkCache.getInlinks(id1);
             TIntSet inlinks2 = linkCache.getInlinks(id2);

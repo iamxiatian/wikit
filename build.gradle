@@ -1,6 +1,20 @@
 apply plugin: 'idea'
 apply plugin: 'java'
 
+
+buildscript {
+    repositories {
+	    mavenLocal()
+	    maven { url "https://repo.spring.io/libs-release" }
+	    mavenCentral()
+    }
+    dependencies {
+        classpath "com.mattwhipple.gradle:gradle-emacs-jdee:0.0.2"
+    }
+}
+
+apply plugin: "com.mattwhipple.emacs-jdee"
+
 group = 'ruc.irm'
 archivesBaseName = 'wikit'
 version = '0.2'

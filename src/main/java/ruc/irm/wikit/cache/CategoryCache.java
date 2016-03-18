@@ -1,6 +1,8 @@
 package ruc.irm.wikit.cache;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -14,10 +16,7 @@ import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 import ruc.irm.wikit.model.Category;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
 
@@ -228,55 +227,80 @@ public interface CategoryCache extends NameIdMapping, Cache {
         ArticleCache articleCache = new ArticleCacheRedisImpl(conf);
 
         if (commandLine.hasOption("build")) {
+
             PageSequenceDump dump = new PageSequenceDump(conf,
                     conf.get("wiki.dump.seq.file.category"));
 
-            //make name-id mapping
-            dump.traverse(new WikiPageFilter() {
-                @Override
-                public void process(WikiPage wikiPage, int index) {
-                    if (wikiPage.isCategory()) {
-                        cache.saveNameIdMapping(wikiPage.getCategoryTitle(),
-                                wikiPage.getId());
-                    }
-                }
-
-                @Override
-                public void close() {
-                    cache.finishNameIdMapping();
-                }
-            });
-
-            //make parent-child relations
-            dump.traverse(new WikiPageFilter() {
-                @Override
-                public void process(WikiPage wikiPage, int index) {
-                    if (!wikiPage.isCommonCategory()) return;
-
-                    String title = wikiPage.getCategoryTitle();
-                    //DO NOT use wikiPage.getId() because only one id is
-                    // kept in redis for the same title categories.
-                    int catId = cache.getIdByName(title, -1);
-                    if (catId < 0) return;
-
-                    Collection<String> parents = wikiPage.getCategories();
-                    for (String p : parents) {
-                        int pid = cache.getIdByName(p, -1);
-                        if (pid > 0) {
-                            cache.saveChildren(pid, catId);
+            if(!cache.nameIdMapped()) {
+                //make name-id mapping
+                dump.traverse(new WikiPageFilter() {
+                    @Override
+                    public void process(WikiPage wikiPage, int index) {
+                        if (wikiPage.isCategory()) {
+                            cache.saveNameIdMapping(wikiPage.getCategoryTitle(),
+                                    wikiPage.getId());
                         }
                     }
-                    cache.saveParents(catId, parents);
-                }
 
-                @Override
-                public void close() {
-                    cache.done();
-                }
-            });
+                    @Override
+                    public void close() {
+                        cache.finishNameIdMapping();
+                    }
+                });
+            }
 
-            //后续处理
-            cache.assignDepth();
+            if(!cache.hasDone()) {
+                System.out.println("Add category link edge...");
+                //make parent-child relations
+                dump.traverse(new WikiPageFilter() {
+                    @Override
+                    public void process(WikiPage wikiPage, int index) {
+                        if (!wikiPage.isCommonCategory()) return;
+
+                        String title = wikiPage.getCategoryTitle();
+                        //DO NOT use wikiPage.getId() because only one id is
+                        // kept in redis for the same title categories.
+                        int catId = cache.getIdByName(title, -1);
+                        if (catId < 0) return;
+
+                        Collection<String> parents = wikiPage.getCategories();
+                        for (String p : parents) {
+                            int pid = cache.getIdByName(p, -1);
+                            if (pid > 0) {
+                                cache.saveChildren(pid, catId);
+                            }
+                        }
+                        cache.saveParents(catId, parents);
+                    }
+
+                    @Override
+                    public void close() {
+                        cache.done();
+                    }
+                });
+
+                //后续处理
+                System.out.println("Add category depth...");
+                cache.assignDepth();
+
+                System.out.println("Add category article link...");
+                //增加类别到文章的链接关系
+                dump = new PageSequenceDump(conf,
+                        conf.get("wiki.dump.seq.file.article"));
+                dump.traverse(new WikiPageFilter() {
+                    @Override
+                    public void process(WikiPage wikiPage, int index) {
+                        int articleId  =wikiPage.getId();
+                        for (String c : wikiPage.getCategories()) {
+                            int cid = cache.getIdByName(c, 0);
+                            if(cid>0) {
+                                cache.addArticleRelation(cid, articleId);
+                            }
+                        }
+                    }
+                });
+            }
+            System.out.println("Build complete!");
         } else if (commandLine.hasOption("cycle")) {
             String name = commandLine.getOptionValue("cycle");
             cache.findCycles(name);
@@ -388,6 +412,7 @@ public interface CategoryCache extends NameIdMapping, Cache {
                 System.out.print("Input category id or name>");
             }
         }
+
 
         System.out.println("Bye!");
     }

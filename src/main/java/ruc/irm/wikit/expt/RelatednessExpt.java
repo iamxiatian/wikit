@@ -125,6 +125,7 @@ public class RelatednessExpt {
         writer.close();
     }
 
+
     public static void main(String[] args) throws ParseException, IOException {
         String helpMsg = "usage: RelatednessExpt -c config.xml";
 

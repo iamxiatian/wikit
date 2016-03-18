@@ -1,16 +1,18 @@
 package ruc.irm.wikit.nlp;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import org.apache.commons.cli.*;
+import org.apache.commons.lang.CharSet;
 import org.apache.commons.lang3.math.NumberUtils;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 
 import java.io.*;
-import java.nio.file.Files;
 
 /**
  * Split sentence by opennlp toolkit
@@ -58,8 +60,7 @@ public class SentenceSplitter {
      * @return
      */
     public String[] split(File textFile) throws IOException {
-        String text = Joiner.on("\n").join(Files.readAllLines(textFile.toPath()));
-        System.out.println(text);
+        String text = Joiner.on(" ").join(Files.readLines(textFile, Charsets.UTF_8));
         return split(text);
     }
 
@@ -89,6 +90,6 @@ public class SentenceSplitter {
                 System.out.println(s);
             }
         }
-        
+
     }
 }

@@ -1,5 +1,7 @@
 package ruc.irm.wikit.espm.graph;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -15,7 +17,9 @@ import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.model.Category;
 import ruc.irm.wikit.util.ConsoleLoop;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
@@ -154,6 +158,46 @@ public interface CategoryTreeGraph extends NameIdMapping, Cache {
      */
     public void build() throws WikitException;
 
+
+
+    /**
+     * 把某个类别下的所有类别信息输出到文件中，以Technology为例，输出格式为：
+     * /Technology/computer/.../
+     * /Technology/mobile/...
+     *
+     * @param writer
+     * @param prefix
+     * @param startCategoryId
+     * @param onlyLeaf 如果为true，则只有叶子节点会被输出
+     */
+    default void exportSubCategory(PrintWriter writer, final String prefix, int startCategoryId, boolean onlyLeaf) {
+        if (!hasDone()) {
+            System.out.println("Category cache is not constructed yet.");
+        }
+
+
+        String name = getNameById(startCategoryId, null);
+        if(name == null)
+            return;
+
+        String fullName = prefix + "/" + name;
+        Set<Integer> childIds = getChildIds(startCategoryId);
+
+        if (childIds == null || childIds.size() == 0) {
+            if(getConceptCount(startCategoryId) > 5) {
+                writer.println(fullName);
+            }
+        } else {
+            if(!onlyLeaf) {
+                writer.println(fullName);
+            }
+            for (int id : childIds) {
+                exportSubCategory(writer, fullName, id, onlyLeaf);
+            }
+        }
+    }
+
+
     public static void main(String[] args) throws ParseException, WikitException, IOException {
         String helpMsg = "usage: CategoryTreeGraph -c config.xml";
 
@@ -166,6 +210,8 @@ public interface CategoryTreeGraph extends NameIdMapping, Cache {
                 "category node."));
         options.addOption(new Option("test", false, "loop test on terminal"));
         options.addOption(new Option("stat", false, "show statistics info"));
+
+        options.addOption(new Option("tmp", false, "Do temp work, please see source code."));
 
         CommandLine commandLine = parser.parse(options, args);
         if (!commandLine.hasOption("c")) {
@@ -272,6 +318,14 @@ public interface CategoryTreeGraph extends NameIdMapping, Cache {
             }
 
             System.out.println("Bye!");
+        }
+
+
+        if (commandLine.hasOption("tmp")) {
+            PrintWriter writer = new PrintWriter(Files.newWriter(new File("/tmp/tech.txt"), Charsets.UTF_8));
+            int startId = treeGraph.getIdByName("Technology", 0);
+            treeGraph.exportSubCategory(writer, "", startId, true);
+            writer.close();
         }
     }
 }

@@ -39,6 +39,10 @@
 		        <div>
 			        The relatedness is
 		            <span style="font-size:larger;color: red;">${relatedness}</span>
+			        <br/>
+                    The ESPM relatedness is
+                    <span style="font-size:larger;color: red;">${espmRelatedness}</span>
+
 		        </div>
 
 		        <h2>Inlink intersection</h2>

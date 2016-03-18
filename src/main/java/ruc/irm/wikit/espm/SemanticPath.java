@@ -112,8 +112,8 @@ public class SemanticPath {
         StringBuilder sb = new StringBuilder();
 
         sb.append(getAvgWeight()).append("\t");
-        for (int i = 1; i < nodeIds.size(); i++) {
-            if (i > 1) {
+        for (int i = 0; i < nodeIds.size(); i++) {
+            if (i > 0) {
                 sb.append(" -> ");
             }
             sb.append(treeGraph.getNameById(nodeIds.get(i), "Null"))
