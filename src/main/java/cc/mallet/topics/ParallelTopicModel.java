@@ -2084,6 +2084,30 @@ public class ParallelTopicModel implements Serializable {
 
 		return topicModel;
 	}
+
+
+	/**
+	 * get the type weight, equlas occurred count in the specified topic plus beta.
+	 * Added by Summer XIA
+	 */
+	public double getWordWeight(int type, int topic) {
+		if (type < 0 && type >= numTypes) {
+			return beta;
+		}
+
+		double weight = beta;
+		int[] topicCounts = typeTopicCounts[type];
+		int index = 0;
+		while (index < topicCounts.length && topicCounts[index] > 0) {
+			int currentTopic = topicCounts[index] & topicMask;
+			if (currentTopic == topic) {
+				weight += topicCounts[index] >> topicBits;
+				break;
+			}
+			index++;
+		}
+		return weight;
+	}
 	
 	public static void main (String[] args) {
 		

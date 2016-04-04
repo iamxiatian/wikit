@@ -24,7 +24,7 @@ import cc.mallet.types.Alphabet;
  */
 public class LabelAlphabet extends Alphabet implements Serializable
 {
-	ArrayList labels;
+	ArrayList<Label> labels;
 		
 	public LabelAlphabet ()
 	{
@@ -32,6 +32,7 @@ public class LabelAlphabet extends Alphabet implements Serializable
 		this.labels = new ArrayList ();
 	}
 
+	@Override
 	public int lookupIndex (Object entry, boolean addIfNotPresent)
 	{
 		int index = super.lookupIndex (entry, addIfNotPresent);

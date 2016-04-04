@@ -15,6 +15,7 @@
 package cc.mallet.util;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ArrayListUtils
 {
@@ -29,7 +30,7 @@ public class ArrayListUtils
 	}
 
 	// Useful until java 1.5  -ghuang
-	static public int[] toIntArray (ArrayList list)
+	static public int[] toIntArray (List<? extends Number> list)
 	{
 		int[] result = new int[list.size()];
 
@@ -42,7 +43,7 @@ public class ArrayListUtils
 	}
 
 	// Useful until java 1.5  -ghuang
-	static public double[] toDoubleArray (ArrayList list)
+	static public double[] toDoubleArray (List<? extends Number> list)
 	{
 		double[] result = new double[list.size()];
 

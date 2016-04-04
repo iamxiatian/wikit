@@ -13,7 +13,7 @@ import ruc.irm.wikit.nlp.libsvm.kernel.LinearKernel;
 import ruc.irm.wikit.util.mallet.PorterStemmerPipe;
 
 import java.io.*;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Test classification effects with ESPM support
@@ -25,21 +25,27 @@ import java.util.Iterator;
  * @date Feb 24, 2016 11:17 AM
  */
 public class EspmClassify {
+
+    Pipe makePipe(File homeDir, MyPipe.Type type) {
+        return new SerialPipes(new Pipe[] {
+                new Target2Label(),
+                new Input2CharSequence(),
+                new CharSequence2TokenSequence(),
+                new TokenSequenceRemoveStopwords(),
+                new PorterStemmerPipe(),
+                new MyPipe(homeDir, type),
+                new TokenSequence2FeatureSequence(),
+                new FeatureSequence2FeatureVector ()});
+    }
+
     /**
      * Load 20Newsgroup corpus
      *
      * @param ngCorpusPath
      * @return
      */
-    public InstanceList load20NGInstances(File ngCorpusPath) {
-        InstanceList instances = new InstanceList(new SerialPipes(new Pipe[] {
-                new Target2Label(),
-                new Input2CharSequence(),
-                new CharSequence2TokenSequence(),
-                new TokenSequenceRemoveStopwords(),
-                new PorterStemmerPipe(),
-                new TokenSequence2FeatureSequence(),
-                new FeatureSequence2FeatureVector ()}));
+    public InstanceList load20NGInstances(File ngCorpusPath, File miningDir, MyPipe.Type type) {
+        InstanceList instances = new InstanceList(makePipe(miningDir, type));
 
 
         File[] dirs = ngCorpusPath.listFiles();
@@ -57,14 +63,15 @@ public class EspmClassify {
         //NaiveBayesTrainer trainer = new NaiveBayesTrainer();
         //SVMClassifierTrainer trainer = new SVMClassifierTrainer(new LinearKernel());
 
-        //SVMClassifierTrainer baseTrainer = new SVMClassifierTrainer(new LinearKernel());
-        NaiveBayesTrainer baseTrainer = new NaiveBayesTrainer();
+        SVMClassifierTrainer baseTrainer = new SVMClassifierTrainer(new LinearKernel());
+        //NaiveBayesTrainer baseTrainer = new NaiveBayesTrainer();
 
-        RankedFeatureVector.Factory ranker = new FeatureCounts.Factory();
-        FeatureSelector selector = new FeatureSelector(ranker, 50);
+        RankedFeatureVector.Factory ranker = null;
+//        ranker = new FeatureCounts.Factory();
+        ranker = new InfoGain.Factory();
+        FeatureSelector selector = new FeatureSelector(ranker, 1000);
 
-        FeatureSelectingClassifierTrainer trainer = new FeatureSelectingClassifierTrainer
-                (baseTrainer, selector);
+        FeatureSelectingClassifierTrainer trainer = new FeatureSelectingClassifierTrainer(baseTrainer, selector);
 
 
         Classifier c = trainer.train(trainingInstances);
@@ -195,7 +202,79 @@ public class EspmClassify {
         System.out.println("Macro:" + macro/labelAlphabet.size());
     }
 
-    public Trial testTrainSplit(InstanceList instances) {
+    public void test(File rawCorpusDir, File miningDir, boolean raw, boolean esa, boolean espm, boolean espmesa) {
+        StringBuilder sb = new StringBuilder();
+        if (raw) {
+            System.out.println("process raw data...");
+            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.SKIP);
+
+            double accuracy = testTrainSplit(instances);
+            sb.append("Raw\t==> " + accuracy).append("\n");
+            System.out.println("Raw data\t=> " + accuracy);
+        }
+
+        if (esa) {
+            System.out.println("process ESA data...");
+            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.ESA);
+
+            double accuracy = testTrainSplit(instances);
+            sb.append("ESA\t==> " + accuracy).append("\n");
+            System.out.println("ESA\t=> " + accuracy);
+        }
+
+        if (espm) {
+            System.out.println("process ESPM data...");
+            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.ESPM);
+
+            double accuracy = testTrainSplit(instances);
+            sb.append("ESPM\t==> " + accuracy).append("\n");
+            System.out.println("ESPM\t=> " + accuracy);
+        }
+
+
+        if (espmesa) {
+            System.out.println("process ESPM and ESA data...");
+            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.ESPMESA);
+
+            double accuracy = testTrainSplit(instances);
+            sb.append("ESPMESA\t==> " + accuracy).append("\n");
+            System.out.println("ESPMESA\t=> " + accuracy);
+        }
+
+        System.out.println("Result:");
+        System.out.println(sb.toString());
+    }
+
+    InstanceList[] split(InstanceList instances, int m) {
+        List<InstanceList> list = new ArrayList<>();
+        for (int i = 0; i < m; i++) {
+            list.add(new InstanceList(instances.getPipe()));
+        }
+
+        Map<Object, List<Instance>> map = new HashMap<>();
+        for (Instance instance : instances) {
+            List<Instance> catList = map.get(instance.getTarget());
+            if (catList == null) {
+                catList = new ArrayList<>();
+            }
+            catList.add(instance);
+            map.put(instance.getTarget(), catList);
+        }
+
+        for (Map.Entry<Object, List<Instance>> entry: map.entrySet()) {
+            List<Instance> catList = entry.getValue();
+            System.out.println(entry.getKey() + "==>" + catList.size());
+            int index = 0;
+            for (Instance instance : catList) {
+                list.get(index).add(instance);
+                index = (index+1)%m;
+            }
+        }
+
+        return list.toArray(new InstanceList[m]);
+    }
+
+    public double testTrainSplit(InstanceList instances) {
 
         int TRAINING = 0;
         int TESTING = 1;
@@ -207,10 +286,45 @@ public class EspmClassify {
         //  instances to each sub-list based on the provided proportions.
 
         //InstanceList[] instanceLists = instances.split(new Randoms(),  new double[] {0.9, 0.1, 0.0});
-        InstanceList[] instanceLists = instances.splitInTwoByModulo(5); //1份测试，9份训练
+        //InstanceList[] instanceLists = instances.splitInTwoByModulo(6); //1份测试，9份训练
 
-        InstanceList trainList = instanceLists[1];
-        InstanceList testList = instanceLists[0];
+//        InstanceList[] instanceLists = instances.splitInOrder(new double[]{10, 10, 10, 10, 10,
+//                10, 10, 10, 10, 10});
+
+        InstanceList[] instanceLists = split(instances, 10);
+        //cross validate
+        double accuracy = 0;
+        System.out.println(instanceLists.length);
+        for (int i = 0; i < instanceLists.length; i++) {
+            System.out.println("size:" + instanceLists[i].size());
+        }
+
+        int folds = 2;
+        for(int step=0; step<instanceLists.length && step<folds; step++) {
+            InstanceList trainList = instances.cloneEmpty();
+            InstanceList testList = instances.cloneEmpty();
+
+            for (int i = 0; i < instanceLists.length; i++) {
+                if(i==step) {
+                    testList.addAll(instanceLists[i]);
+                } else{
+                    trainList.addAll(instanceLists[i]);
+                }
+            }
+
+
+            Classifier classifier = trainClassifier(trainList);
+            System.out.println("Training set:" + trainList.size());
+            System.out.println("Test set:" + testList.size());
+            Trial trial = new Trial(classifier, testList);
+            System.out.println("accuracy:" + trial.getAccuracy());
+            accuracy  += trial.getAccuracy();
+        }
+
+        return accuracy/folds;
+
+//        InstanceList trainList = instanceLists[1];
+//        InstanceList testList = instanceLists[0];
 
         // The third position is for the "validation" set,
         //  which is a set of instances not used directly
@@ -220,31 +334,52 @@ public class EspmClassify {
         // Most Mallet ClassifierTrainers can not currently take advantage
         //  of validation sets.
 
-        Classifier classifier = trainClassifier(trainList);
-        return new Trial(classifier, testList);
+//        Classifier classifier = trainClassifier(trainList);
+//        return new Trial(classifier, testList);
+        //return null;
     }
 
+    private static void test() {
+        EspmClassify classify = new EspmClassify();
+        File dir = new File("/home/xiatian/data/20news-subject");
+        File dir2 = new File("/home/xiatian/data/20news-mining-subject");
+        classify.test(dir, dir2, true, false, false, false);
+    }
 
     public static void main(String[] args) throws ParseException {
+        //test();
+
+        ///*
         HelpFormatter helpFormatter = new HelpFormatter();
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
-        options.addOption(new Option("dir", true, "classification home folder."));
+        options.addOption(new Option("corpusDir", true, "raw classification home folder."));
+        options.addOption(new Option("miningDir", true, "mining result home folder."));
+        options.addOption(new Option("raw", false, "view raw classification result."));
+        options.addOption(new Option("esa", false, "view esa classification result."));
+        options.addOption(new Option("espm", false, "view espm classification result."));
+        options.addOption(new Option("espmesa", false, "view espmesa classification result."));
 
 
         String name = EspmClassify.class.getSimpleName();
         CommandLine commandLine = parser.parse(options, args);
-        if(!commandLine.hasOption("dir")) {
-            String usage = "Usage: run.py " + name + " -dir pathname";
+        if(!commandLine.hasOption("corpusDir")) {
+            String usage = "Usage: run.py " + name + " -corpusDir pathname";
             helpFormatter.printHelp(usage, options);
             return;
         }
 
         EspmClassify classify = new EspmClassify();
-        File corpusDir = new File(commandLine.getOptionValue("dir"));
-        InstanceList instances = classify.load20NGInstances(corpusDir);
-        Trial trial = classify.testTrainSplit(instances);
-        classify.printTrial(trial);
+        File rawDir = new File(commandLine.getOptionValue("corpusDir"));
+        File miningDir = new File(commandLine.getOptionValue("miningDir"));
+
+        classify.test(rawDir, miningDir,
+                commandLine.hasOption("raw"),
+                commandLine.hasOption("esa"),
+                commandLine.hasOption("espm"),
+                commandLine.hasOption("espmesa"));
+        System.out.println("I'm DONE!");
+        //*/
     }
 }
 

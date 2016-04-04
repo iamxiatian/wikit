@@ -83,9 +83,9 @@ class Cache {
             h.data = new_data;
             size -= more;
             do {
-                int _ = h.len;
+                int v = h.len;
                 h.len = len;
-                len = _;
+                len = v;
             } while (false);
         }
 
@@ -106,14 +106,14 @@ class Cache {
             lru_delete(head[j]);
         }
         do {
-            float[] _ = head[i].data;
+            float[] v = head[i].data;
             head[i].data = head[j].data;
-            head[j].data = _;
+            head[j].data = v;
         } while (false);
         do {
-            int _ = head[i].len;
+            int v = head[i].len;
             head[i].len = head[j].len;
-            head[j].len = _;
+            head[j].len = v;
         } while (false);
         if (head[i].len > 0) {
             lru_insert(head[i]);
@@ -124,18 +124,18 @@ class Cache {
 
         if (i > j) {
             do {
-                int _ = i;
+                int v = i;
                 i = j;
-                j = _;
+                j = v;
             } while (false);
         }
         for (head_t h = lru_head.next; h != lru_head; h = h.next) {
             if (h.len > i) {
                 if (h.len > j) {
                     do {
-                        float _ = h.data[i];
+                        float v = h.data[i];
                         h.data[i] = h.data[j];
-                        h.data[j] = _;
+                        h.data[j] = v;
                     } while (false);
                 } else {
                     // give up
@@ -181,15 +181,15 @@ abstract class Kernel extends QMatrix {
 
     void swap_index(int i, int j) {
         do {
-            svm_node _ = x[i];
+            svm_node v = x[i];
             x[i] = x[j];
-            x[j] = _;
+            x[j] = v;
         } while (false);
         if (x_square != null) {
             do {
-                double _ = x_square[i];
+                double v = x_square[i];
                 x_square[i] = x_square[j];
-                x_square[j] = _;
+                x_square[j] = v;
             } while (false);
         }
     }
@@ -329,39 +329,39 @@ class Solver {
     void swap_index(int i, int j) {
         Q.swap_index(i, j);
         do {
-            byte _ = y[i];
+            byte v = y[i];
             y[i] = y[j];
-            y[j] = _;
+            y[j] = v;
         } while (false);
         do {
-            double _ = G[i];
+            double v = G[i];
             G[i] = G[j];
-            G[j] = _;
+            G[j] = v;
         } while (false);
         do {
-            byte _ = alpha_status[i];
+            byte v = alpha_status[i];
             alpha_status[i] = alpha_status[j];
-            alpha_status[j] = _;
+            alpha_status[j] = v;
         } while (false);
         do {
-            double _ = alpha[i];
+            double v = alpha[i];
             alpha[i] = alpha[j];
-            alpha[j] = _;
+            alpha[j] = v;
         } while (false);
         do {
-            double _ = p[i];
+            double v = p[i];
             p[i] = p[j];
-            p[j] = _;
+            p[j] = v;
         } while (false);
         do {
-            int _ = active_set[i];
+            int v = active_set[i];
             active_set[i] = active_set[j];
-            active_set[j] = _;
+            active_set[j] = v;
         } while (false);
         do {
-            double _ = G_bar[i];
+            double v = G_bar[i];
             G_bar[i] = G_bar[j];
-            G_bar[j] = _;
+            G_bar[j] = v;
         } while (false);
     }
 
@@ -1139,14 +1139,14 @@ class SVC_Q extends Kernel {
         cache.swap_index(i, j);
         super.swap_index(i, j);
         do {
-            byte _ = y[i];
+            byte v = y[i];
             y[i] = y[j];
-            y[j] = _;
+            y[j] = v;
         } while (false);
         do {
-            double _ = QD[i];
+            double v = QD[i];
             QD[i] = QD[j];
-            QD[j] = _;
+            QD[j] = v;
         } while (false);
     }
 }
@@ -1184,9 +1184,9 @@ class ONE_CLASS_Q extends Kernel {
         cache.swap_index(i, j);
         super.swap_index(i, j);
         do {
-            double _ = QD[i];
+            double v = QD[i];
             QD[i] = QD[j];
-            QD[j] = _;
+            QD[j] = v;
         } while (false);
     }
 }
@@ -1222,19 +1222,19 @@ class SVR_Q extends Kernel {
 
     void swap_index(int i, int j) {
         do {
-            byte _ = sign[i];
+            byte v = sign[i];
             sign[i] = sign[j];
-            sign[j] = _;
+            sign[j] = v;
         } while (false);
         do {
-            int _ = index[i];
+            int v = index[i];
             index[i] = index[j];
-            index[j] = _;
+            index[j] = v;
         } while (false);
         do {
-            double _ = QD[i];
+            double v = QD[i];
             QD[i] = QD[j];
-            QD[j] = _;
+            QD[j] = v;
         } while (false);
     }
 
@@ -1278,8 +1278,8 @@ public class svm {
     private static svm_print_interface svm_print_stdout = new svm_print_interface() {
 
         public void print(String s) {
-            System.out.print(s);
-            System.out.flush();
+            //System.out.print(s);
+            //System.out.flush();
         }
     };
     private static svm_print_interface svm_print_string = svm_print_stdout;
@@ -1728,9 +1728,9 @@ public class svm {
         for (i = 0; i < prob.l; i++) {
             int j = i + rand.nextInt(prob.l - i);
             do {
-                int _ = perm[i];
+                int v = perm[i];
                 perm[i] = perm[j];
-                perm[j] = _;
+                perm[j] = v;
             } while (false);
         }
         for (i = 0; i < nr_fold; i++) {
@@ -2162,9 +2162,9 @@ public class svm {
                 for (i = 0; i < count[c]; i++) {
                     int j = i + rand.nextInt(count[c] - i);
                     do {
-                        int _ = index[start[c] + j];
+                        int v = index[start[c] + j];
                         index[start[c] + j] = index[start[c] + i];
-                        index[start[c] + i] = _;
+                        index[start[c] + i] = v;
                     } while (false);
                 }
             }
@@ -2199,9 +2199,9 @@ public class svm {
             for (i = 0; i < l; i++) {
                 int j = i + rand.nextInt(l - i);
                 do {
-                    int _ = perm[i];
+                    int v = perm[i];
                     perm[i] = perm[j];
-                    perm[j] = _;
+                    perm[j] = v;
                 } while (false);
             }
             for (i = 0; i <= nr_fold; i++) {

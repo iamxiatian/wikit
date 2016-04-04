@@ -17,8 +17,11 @@
 
 package cc.mallet.types;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.*;
 
+import cc.mallet.util.ArrayListUtils;
 import cc.mallet.util.MalletLogger;
 
 public class FeatureSelector
@@ -71,6 +74,7 @@ public class FeatureSelector
 	public void selectFeaturesForAllLabels (InstanceList ilist)
 		
 	{
+		System.out.println("select for all all labels");
 		RankedFeatureVector ranking = ranker.newRankedFeatureVector (ilist);
 		FeatureSelection fs = new FeatureSelection (ilist.getDataAlphabet());
 		if (numFeatures != -1) { // Select by number of features.
@@ -87,6 +91,24 @@ public class FeatureSelector
 		}
 		logger.info("Selected " + fs.cardinality() + " features from " +
 								ilist.getDataAlphabet().size() + " features");
+
+		//过滤Instance中多余的Feature
+		for (Instance instance : ilist) {
+			FeatureVector fv = (FeatureVector) instance.getData ();
+			List<Integer> indexList = new ArrayList();
+			List<Double> valueList = new ArrayList();
+			for (int idx : fv.getIndices()) {
+				if (fs.contains(idx)) {
+					indexList.add(idx);
+					valueList.add(fv.value(idx));
+				}
+			}
+			int[] indices = ArrayListUtils.toIntArray(indexList);
+			double[] values = ArrayListUtils.toDoubleArray(valueList);
+			fv.setIndices(indices);
+			fv.setValues(values);
+		}
+
 		ilist.setPerLabelFeatureSelection (null);
 		ilist.setFeatureSelection (fs);
 	}

@@ -69,7 +69,7 @@ public class InstanceList extends ArrayList<Instance> implements Serializable, I
 	private static Logger logger = MalletLogger.getLogger(InstanceList.class.getName());
 
 	HashMap<Instance, Double> instWeights = null;
-  // This should never be set by a ClassifierTrainer, it should be used in conjunction with a Classifier's FeatureSelection
+  // This should never be set by a ClassifierTrainer, it should be used in conjunction with a Classifier's e
 	// Or perhaps it should be removed from here, and there should be a ClassifierTrainer.train(InstanceList, FeatureSelection) method.
 	FeatureSelection featureSelection = null;  
 	FeatureSelection[] perLabelFeatureSelection = null;
@@ -740,7 +740,7 @@ public InstanceList[] splitInOrder (double[] proportions) {
 		featureSelection = selectedFeatures;
 	}
 
-	public FeatureSelection getFeatureSelection ()
+	public FeatureSelection getFeatureSelection()
 	{
 		return featureSelection;
 	}

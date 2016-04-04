@@ -251,13 +251,21 @@ public class SparseVector implements ConstantMatrix, Vector, Serializable
 	public int [] getIndices() {
 		return indices;
 	}
-	
+
+	public void setIndices(int[] indices) {
+		this.indices = indices;
+	}
+
 	// necessary for the SVM implementation! -dmetzler
 	// ...but be careful, this is allowed to be null! -cas
 	public double [] getValues()
 	{
 		return values;
-	}	
+	}
+
+	public void setValues(double[] values) {
+		this.values = values;
+	}
 
 	// xxx This is just the number of non-zero entries...
 	// This is different behavior than Matrix2!!

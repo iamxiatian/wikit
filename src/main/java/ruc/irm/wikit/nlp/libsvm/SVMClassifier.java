@@ -62,7 +62,12 @@ public class SVMClassifier extends Classifier implements Serializable {
         SparseVector vector = SVMClassifierTrainer.getVector(instance);
         double[] scores = new double[model.nr_class];
 
-        double sLabel = mltLabel2svmLabel.get(getLabelAlphabet().lookupLabel(instance.getTarget().toString()).toString());
+        String targetLabel = getLabelAlphabet().lookupLabel(instance.getTarget().toString()).toString();
+//        System.out.println("targetLabel is " + targetLabel);
+//        for (Entry<String, Double> entry : mltLabel2svmLabel.entrySet()) {
+//            System.out.println(entry.getKey() + "==>" + entry.getValue());
+//        }
+        double sLabel = mltLabel2svmLabel.get(targetLabel);
         double p = SVMPredictor.predictProbability(new ruc.irm.wikit.nlp.libsvm.ex.Instance(sLabel, vector), model, scores);
 
         //if SVM is not predicting probability then assign a score of 1.0 to the best class(p)
