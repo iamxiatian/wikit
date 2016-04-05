@@ -2,14 +2,12 @@ package ruc.irm.wikit.app;
 
 import cc.mallet.classify.Classifier;
 import cc.mallet.classify.FeatureSelectingClassifierTrainer;
-import cc.mallet.classify.NaiveBayesTrainer;
 import cc.mallet.classify.Trial;
 import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.CsvIterator;
 import cc.mallet.pipe.iterator.FileIterator;
 import cc.mallet.types.*;
 import org.apache.commons.cli.*;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.math.NumberUtils;
 import ruc.irm.wikit.nlp.libsvm.SVMClassifierTrainer;
 import ruc.irm.wikit.nlp.libsvm.kernel.LinearKernel;
@@ -20,25 +18,19 @@ import java.util.*;
 
 /**
  * Test classification effects with ESPM support
- * <p>
+ *
  * Example:
  * ./run.py EspmClassify -dir /home/xiatian/data/20news-18828
  *
  * @author Tian Xia
  * @date Feb 24, 2016 11:17 AM
  */
-public class EspmClassify {
-
-    private String filterFileName = null;
+public class EspmClassify2 {
 
     private int topFeatures = 1000;
 
-    private File getFilterFile() {
-        return new File("/tmp/features", filterFileName + "." + topFeatures);
-    }
-
     Pipe makePipe(File homeDir, MyPipe.Type type) {
-        return new SerialPipes(new Pipe[]{
+        return new SerialPipes(new Pipe[] {
                 new Target2Label(),
                 new Input2CharSequence(),
                 new CharSequence2TokenSequence(),
@@ -46,9 +38,8 @@ public class EspmClassify {
                 new PorterStemmerPipe(),
                 new MyPipe(homeDir, type),
                 new TokenSequenceLowercase(),
-                new FilterTokenSequence(getFilterFile()), //只有出现在文件中的词语会保留
                 new TokenSequence2FeatureSequence(),
-                new FeatureSequence2FeatureVector()});
+                new FeatureSequence2FeatureVector ()});
     }
 
     /**
@@ -58,6 +49,7 @@ public class EspmClassify {
      * @return
      */
     public InstanceList load20NGInstances(File ngCorpusPath, File miningDir, MyPipe.Type type) {
+
 
 
         InstanceList instances = new InstanceList(makePipe(miningDir, type));
@@ -84,23 +76,19 @@ public class EspmClassify {
         //ranker = new FeatureCounts.Factory();
         ranker = new InfoGain.Factory();
         FeatureSelector selector = new FeatureSelector(ranker, topFeatures);
-        File f = getFilterFile();
-        if (!f.exists()) {
-            selector.saveSelectedFeatures(f, trainingInstances);
-            return new NaiveBayesTrainer().train(trainingInstances);
-        } else {
-            return baseTrainer.train(trainingInstances);
-        }
+
+        FeatureSelectingClassifierTrainer trainer = new FeatureSelectingClassifierTrainer(baseTrainer, selector);
 
 
-
-        //FeatureSelectingClassifierTrainer trainer = new FeatureSelectingClassifierTrainer(baseTrainer, selector);
-
-
-        //Classifier c = trainer.train(trainingInstances);
+        Classifier c = trainer.train(trainingInstances);
         //Classifier c = baseTrainer.train(trainingInstances);
-
-        //return c;
+//        Alphabet alphabet = c.getFeatureSelection().getAlphabet();
+//        Iterator it = alphabet.iterator();
+//        while (it.hasNext()) {
+//            Object obj = it.next();
+//            System.out.println(obj);
+//        }
+        return c;
     }
 
 
@@ -108,7 +96,7 @@ public class EspmClassify {
             throws FileNotFoundException, IOException, ClassNotFoundException {
         Classifier classifier;
 
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(serializedFile));
+        ObjectInputStream ois =  new ObjectInputStream (new FileInputStream(serializedFile));
         classifier = (Classifier) ois.readObject();
         ois.close();
 
@@ -118,8 +106,8 @@ public class EspmClassify {
     public void saveClassifier(Classifier classifier, File serializedFile)
             throws IOException {
         ObjectOutputStream oos =
-                new ObjectOutputStream(new FileOutputStream(serializedFile));
-        oos.writeObject(classifier);
+                new ObjectOutputStream(new FileOutputStream (serializedFile));
+        oos.writeObject (classifier);
         oos.close();
     }
 
@@ -153,7 +141,7 @@ public class EspmClassify {
 
             // print the labels with their weights in descending order (ie best first)
 
-            for (int rank = 0; rank < labeling.numLocations(); rank++) {
+            for (int rank = 0; rank < labeling.numLocations(); rank++){
                 System.out.print(labeling.getLabelAtRank(rank) + ":" +
                         labeling.getValueAtRank(rank) + " ");
             }
@@ -218,91 +206,50 @@ public class EspmClassify {
                     trial.getF1(i));
             macro += trial.getF1(i);
         }
-        System.out.println("Macro:" + macro / labelAlphabet.size());
+        System.out.println("Macro:" + macro/labelAlphabet.size());
     }
 
-    /**
-     * fold: 表示十折交叉验证的第几个
-     */
-    public Map<String, Double> test(File rawCorpusDir, File miningDir, boolean raw, boolean esa, boolean espm, boolean espmesa, int fold) {
-        Map<String, Double> results = new HashedMap();
-
+    public void test(File rawCorpusDir, File miningDir, boolean raw, boolean esa, boolean espm, boolean espmesa) {
         StringBuilder sb = new StringBuilder();
         if (raw) {
             System.out.println("process raw data...");
-            this.filterFileName = "PURE_BOW-" + fold;
-            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.PURE_BOW);
-            double accuracy = testTrainSplit(instances, fold);
+            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.SKIP);
 
-            sb.append("PURE_BOW\t==> " + accuracy).append("\n");
-            System.out.println("PURE_BOW\t=> " + accuracy);
-            results.put("PURE_BOW", accuracy);
+            double accuracy = testTrainSplit(instances);
+            sb.append("Raw\t==> " + accuracy).append("\n");
+            System.out.println("Raw data\t=> " + accuracy);
         }
 
         if (esa) {
             System.out.println("process ESA data...");
-            this.filterFileName = "PURE_ESA-" + fold;
-            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.PURE_ESA);
-            double accuracy = testTrainSplit(instances, fold);
+            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.ESA);
 
-            sb.append("PURE_ESA\t==> " + accuracy).append("\n");
-            System.out.println("PURE_ESA\t=> " + accuracy);
-            results.put("PURE_ESA", accuracy);
-
-
-            this.filterFileName = "BOW_ESA-" + fold;
-            instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.BOW_ESA);
-            accuracy = testTrainSplit(instances, fold);
-
-            sb.append("BOW_ESA\t==> " + accuracy).append("\n");
-            System.out.println("BOW_ESA\t=> " + accuracy);
-            results.put("BOW_ESA", accuracy);
+            double accuracy = testTrainSplit(instances);
+            sb.append("ESA\t==> " + accuracy).append("\n");
+            System.out.println("ESA\t=> " + accuracy);
         }
 
         if (espm) {
             System.out.println("process ESPM data...");
-            this.filterFileName = "PURE_ESPM-" + fold;
-            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.PURE_ESPM);
-            double accuracy = testTrainSplit(instances, fold);
+            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.ESPM);
 
-            sb.append("PURE_ESPM\t==> " + accuracy).append("\n");
-            System.out.println("PURE_ESPM\t=> " + accuracy);
-            results.put("PURE_ESPM", accuracy);
-
-
-            this.filterFileName = "BOW_ESPM-" + fold;
-            instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.BOW_ESPM);
-            accuracy = testTrainSplit(instances, fold);
-
-            sb.append("BOW_ESPM\t==> " + accuracy).append("\n");
-            System.out.println("BOW_ESPM\t=> " + accuracy);
-            results.put("BOW_ESPM", accuracy);
+            double accuracy = testTrainSplit(instances);
+            sb.append("ESPM\t==> " + accuracy).append("\n");
+            System.out.println("ESPM\t=> " + accuracy);
         }
 
 
         if (espmesa) {
             System.out.println("process ESPM and ESA data...");
-            this.filterFileName = "PURE_ESPM_ESA-" + fold;
-            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.PURE_ESPM_ESA);
-            double accuracy = testTrainSplit(instances, fold);
+            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.ESPMESA);
 
-            sb.append("PURE_ESPM_ESA\t==> " + accuracy).append("\n");
-            System.out.println("PURE_ESPM_ESA\t=> " + accuracy);
-            results.put("PURE_ESPM_ESA", accuracy);
-
-            this.filterFileName = "BOW_ESPM_ESA-" + fold;
-            instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.BOW_ESPM_ESA);
-            accuracy = testTrainSplit(instances, fold);
-
-            sb.append("BOW_ESPM_ESA\t==> " + accuracy).append("\n");
-            System.out.println("BOW_ESPM_ESA\t=> " + accuracy);
-            results.put("BOW_ESPM_ESA", accuracy);
+            double accuracy = testTrainSplit(instances);
+            sb.append("ESPMESA\t==> " + accuracy).append("\n");
+            System.out.println("ESPMESA\t=> " + accuracy);
         }
 
-        String tip = "Fold:" + fold + ", features:" + topFeatures;
-        System.out.println(tip);
+        System.out.println("Result:");
         System.out.println(sb.toString());
-        return results;
     }
 
     InstanceList[] split(InstanceList instances, int m) {
@@ -321,20 +268,20 @@ public class EspmClassify {
             map.put(instance.getTarget(), catList);
         }
 
-        for (Map.Entry<Object, List<Instance>> entry : map.entrySet()) {
+        for (Map.Entry<Object, List<Instance>> entry: map.entrySet()) {
             List<Instance> catList = entry.getValue();
             System.out.println(entry.getKey() + "==>" + catList.size());
             int index = 0;
             for (Instance instance : catList) {
                 list.get(index).add(instance);
-                index = (index + 1) % m;
+                index = (index+1)%m;
             }
         }
 
         return list.toArray(new InstanceList[m]);
     }
 
-    public double testTrainSplit(InstanceList instances, int fold) {
+    public double testTrainSplit(InstanceList instances) {
 
         int TRAINING = 0;
         int TESTING = 1;
@@ -359,48 +306,29 @@ public class EspmClassify {
             System.out.println("size:" + instanceLists[i].size());
         }
 
+        int folds = 2;
+        for(int step=0; step<instanceLists.length && step<folds; step++) {
+            InstanceList trainList = instances.cloneEmpty();
+            InstanceList testList = instances.cloneEmpty();
 
-        InstanceList trainList = instances.cloneEmpty();
-        InstanceList testList = instances.cloneEmpty();
-        for (int i = 0; i < instanceLists.length; i++) {
-            if (i == fold) {
-                testList.addAll(instanceLists[i]);
-            } else {
-                trainList.addAll(instanceLists[i]);
+            for (int i = 0; i < instanceLists.length; i++) {
+                if(i==step) {
+                    testList.addAll(instanceLists[i]);
+                } else{
+                    trainList.addAll(instanceLists[i]);
+                }
             }
+
+
+            Classifier classifier = trainClassifier(trainList);
+            System.out.println("Training set:" + trainList.size());
+            System.out.println("Test set:" + testList.size());
+            Trial trial = new Trial(classifier, testList);
+            System.out.println("accuracy:" + trial.getAccuracy());
+            accuracy  += trial.getAccuracy();
         }
-        Classifier classifier = trainClassifier(trainList);
-        System.out.println("Training set:" + trainList.size());
-        System.out.println("Test set:" + testList.size());
-        Trial trial = new Trial(classifier, testList);
-        accuracy = trial.getAccuracy();
-        System.out.println("accuracy:" + accuracy);
 
-        return accuracy;
-
-
-//        int folds = 2; //10
-//        for(int step=0; step<instanceLists.length && step<folds; step++) {
-//            InstanceList trainList = instances.cloneEmpty();
-//            InstanceList testList = instances.cloneEmpty();
-//
-//            for (int i = 0; i < instanceLists.length; i++) {
-//                if(i==step) {
-//                    testList.addAll(instanceLists[i]);
-//                } else{
-//                    trainList.addAll(instanceLists[i]);
-//                }
-//            }
-//
-//            Classifier classifier = trainClassifier(trainList, name + step);
-//            System.out.println("Training set:" + trainList.size());
-//            System.out.println("Test set:" + testList.size());
-//            Trial trial = new Trial(classifier, testList);
-//            System.out.println("accuracy:" + trial.getAccuracy());
-//            accuracy  += trial.getAccuracy();
-//        }
-//
-//        return accuracy/folds;
+        return accuracy/folds;
 
 //        InstanceList trainList = instanceLists[1];
 //        InstanceList testList = instanceLists[0];
@@ -419,13 +347,13 @@ public class EspmClassify {
     }
 
     private static void test() {
-        EspmClassify classify = new EspmClassify();
+        EspmClassify2 classify = new EspmClassify2();
         File dir = new File("/home/xiatian/data/20news-subject");
         File dir2 = new File("/home/xiatian/data/20news-mining-subject");
-        classify.test(dir, dir2, true, false, false, false, 0);
+        classify.test(dir, dir2, true, false, false, false);
     }
 
-    public static void main(String[] args) throws ParseException, IOException {
+    public static void main(String[] args) throws ParseException {
         //test();
 
         ///*
@@ -439,59 +367,27 @@ public class EspmClassify {
         options.addOption(new Option("espm", false, "view espm classification result."));
         options.addOption(new Option("espmesa", false, "view espmesa classification result."));
         options.addOption(new Option("features", true, "Top number features to users."));
-        options.addOption(new Option("fold", true, "which fold."));
 
 
-        String name = EspmClassify.class.getSimpleName();
+        String name = EspmClassify2.class.getSimpleName();
         CommandLine commandLine = parser.parse(options, args);
-        if (!commandLine.hasOption("corpusDir")) {
+        if(!commandLine.hasOption("corpusDir")) {
             String usage = "Usage: run.py " + name + " -corpusDir pathname";
             helpFormatter.printHelp(usage, options);
             return;
         }
 
-        EspmClassify classify = new EspmClassify();
+        EspmClassify2 classify = new EspmClassify2();
         classify.topFeatures = NumberUtils.toInt(commandLine.getOptionValue("features"), 1000);
 
         File rawDir = new File(commandLine.getOptionValue("corpusDir"));
         File miningDir = new File(commandLine.getOptionValue("miningDir"));
 
-        File output = new File("/tmp/espm.expt.txt");
-        PrintWriter writer = new PrintWriter(new FileWriter(output));
-        Map<String, Double> results = new HashedMap();
-        for(int fold=0; fold<10; fold++) {
-            classify.test(rawDir, miningDir,
-                    commandLine.hasOption("raw"),
-                    commandLine.hasOption("esa"),
-                    commandLine.hasOption("espm"),
-                    commandLine.hasOption("espmesa"), fold);
-
-            Map<String, Double> map = classify.test(rawDir, miningDir,
-                    commandLine.hasOption("raw"),
-                    commandLine.hasOption("esa"),
-                    commandLine.hasOption("espm"),
-                    commandLine.hasOption("espmesa"), fold);
-
-            for (Map.Entry<String, Double> entry : map.entrySet()) {
-                if (results.containsKey(entry.getKey())) {
-                    results.put(entry.getKey(), entry.getValue() + results.get(entry.getKey()));
-                } else {
-                    results.put(entry.getKey(), entry.getValue());
-                }
-
-                writer.println("features:" + classify.topFeatures);
-                writer.println(entry.getKey() + "\t==> " + entry.getValue());
-            }
-
-            writer.println("\n");
-            writer.flush();
-        }
-
-        writer.println("AVERAGE for features " + classify.topFeatures);
-        for (Map.Entry<String, Double> entry : results.entrySet()) {
-            writer.println(entry.getKey() + "\t" + entry.getValue());
-        }
-        writer.close();
+        classify.test(rawDir, miningDir,
+                commandLine.hasOption("raw"),
+                commandLine.hasOption("esa"),
+                commandLine.hasOption("espm"),
+                commandLine.hasOption("espmesa"));
         System.out.println("I'm DONE!");
         //*/
     }

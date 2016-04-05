@@ -47,6 +47,7 @@ dependencies {
     compile(
             files('lib/jsc.jar'),
             files('lib/weka-wrapper-1.0.jar'),
+            files('lib/sspace-2.0.4.jar'),
 
            // 'org.slf4j:slf4j-api:1.7.7',
             'ch.qos.logback:logback-classic:1.1.3', //do not need to specify slf4j because of transitive dependencies
@@ -65,7 +66,6 @@ dependencies {
             'com.hankcs:hanlp:portable-1.2.8',
             'org.apache.opennlp:opennlp-tools:1.6.0',
             'org.ahocorasick:ahocorasick:0.3.0',
-            'edu.ucla.sspace:sspace:2.0.4',
             'org.jgrapht:jgrapht-core:0.9.0',
             'nz.ac.waikato.cms.weka:weka-stable:3.6.13',
 

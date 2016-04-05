@@ -42,6 +42,7 @@ public class FeatureSelectingClassifierTrainer extends ClassifierTrainer
 	public Classifier train (InstanceList trainingSet)
 	{
 		featureSelector.selectFeaturesFor (trainingSet);
+
 		// TODO What about also selecting features for the validation set?
 		this.classifier = underlyingTrainer.train (trainingSet);
 		return classifier;

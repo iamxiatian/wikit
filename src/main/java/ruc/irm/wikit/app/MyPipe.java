@@ -13,6 +13,8 @@ import java.io.File;
 import java.util.List;
 
 /**
+ * 根据管道类型，决定如何合并ESPM、ESA分析结果数据，使得每个Instance最终能够根据设置生成对应的特征集合
+ *
  * @author Tian Xia
  * @date Mar 28, 2016 11:30 PM
  */
@@ -20,7 +22,7 @@ public class MyPipe extends Pipe {
     private static final long serialVersionUID = 154100873830L;
 
     public static enum Type {
-        ESA, ESPM, ESPMESA, SKIP
+        BOW_ESA, BOW_ESPM, BOW_ESPM_ESA, PURE_ESA, PURE_ESPM, PURE_ESPM_ESA, PURE_BOW
     }
 
     private Type type;
@@ -33,7 +35,7 @@ public class MyPipe extends Pipe {
 
     public Instance pipe(Instance carrier) {
 
-        if (type == Type.SKIP) {
+        if (type == Type.PURE_BOW) {
             return carrier;
         }
 
@@ -46,31 +48,42 @@ public class MyPipe extends Pipe {
 
         try {
             TokenSequence ts = (TokenSequence) carrier.getData();
+            if(type==Type.PURE_ESA || type==Type.PURE_ESPM || type==Type.PURE_ESPM_ESA) {
+                ts = new TokenSequence();
+            }
 
-            if (type == Type.ESA || type == Type.ESPMESA) {
+            if (type == Type.BOW_ESA || type == Type.BOW_ESPM_ESA
+                    || type==Type.PURE_ESA || type==Type.PURE_ESPM_ESA) {
                 File f = new File(homeDir, "esa/" + name);
                 List<String> lines = Files.readLines(f, Charsets.UTF_8);
+                int count = 0;
                 for (String line : lines) {
                     List<String> items = Splitter.on("|").splitToList(line);
                     if (items.size() > 2) {
                         Token token = new Token("ESA:" + items.get(1));
                         ts.add(token);
                     }
+
+                    count++;
+                    if(count>=50) break;
                 }
             }
 
-            if (type == Type.ESPM || type == Type.ESPMESA) {
+            if (type == Type.BOW_ESPM || type == Type.BOW_ESPM_ESA
+                    || type==Type.PURE_ESPM || type==Type.PURE_ESPM_ESA) {
                 File f = new File(homeDir, "espm/" + name);
                 List<String> lines = Files.readLines(f, Charsets.UTF_8);
                 int count = 0;
                 for (String line : lines) {
                     if (line.trim().isEmpty()) continue;
-                    count++;
-                    if(count>20) break;
+
                     String path = line.substring(0, line.lastIndexOf("|"));
                     for (String item : Splitter.on("/").splitToList(path)) {
                         ts.add(new Token("ESPM:" + item));
                     }
+
+                    count++;
+                    if(count>=20) break;
                 }
             }
 

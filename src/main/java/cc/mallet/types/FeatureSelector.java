@@ -17,12 +17,16 @@
 
 package cc.mallet.types;
 
+import java.io.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.*;
 
 import cc.mallet.util.ArrayListUtils;
 import cc.mallet.util.MalletLogger;
+import org.apache.commons.io.FileUtils;
+import sun.nio.ch.IOStatus;
 
 public class FeatureSelector
 {
@@ -71,6 +75,36 @@ public class FeatureSelector
 			selectFeaturesForAllLabels (ilist);
 	}
 
+	public void saveSelectedFeatures(File f, InstanceList ilist)  {
+		f.getParentFile().mkdirs();
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(f));
+
+			List<String> lines = new LinkedList<>();
+			RankedFeatureVector ranking = ranker.newRankedFeatureVector(ilist);
+			FeatureSelection fs = new FeatureSelection(ilist.getDataAlphabet());
+			if (numFeatures != -1) { // Select by number of features.
+				int nf = Math.min(numFeatures, ranking.singleSize());
+				for (int i = 0; i < nf; i++) {
+					logger.info("adding feature " + i + " word=" + ilist.getDataAlphabet().lookupObject(ranking.getIndexAtRank(i)));
+					writer.println(ilist.getDataAlphabet().lookupObject(ranking.getIndexAtRank(i)).toString());
+				}
+			} else { // Select by threshold.
+				for (int i = 0; i < ranking.singleSize(); i++) {
+					if (ranking.getValueAtRank(i) > minThreshold)
+						writer.println(ilist.getDataAlphabet().lookupObject(ranking.getIndexAtRank(i)).toString());
+				}
+			}
+
+			logger.info("Selected " + fs.cardinality() + " features from " +
+					ilist.getDataAlphabet().size() + " features");
+			writer.close();
+			logger.info("Selected features are saved to file " + f.getAbsolutePath());
+		} catch (IOException e) {
+			throw new IOError(e);
+		}
+	}
+
 	public void selectFeaturesForAllLabels (InstanceList ilist)
 		
 	{
@@ -93,21 +127,21 @@ public class FeatureSelector
 								ilist.getDataAlphabet().size() + " features");
 
 		//过滤Instance中多余的Feature
-		for (Instance instance : ilist) {
-			FeatureVector fv = (FeatureVector) instance.getData ();
-			List<Integer> indexList = new ArrayList();
-			List<Double> valueList = new ArrayList();
-			for (int idx : fv.getIndices()) {
-				if (fs.contains(idx)) {
-					indexList.add(idx);
-					valueList.add(fv.value(idx));
-				}
-			}
-			int[] indices = ArrayListUtils.toIntArray(indexList);
-			double[] values = ArrayListUtils.toDoubleArray(valueList);
-			fv.setIndices(indices);
-			fv.setValues(values);
-		}
+//		for (Instance instance : ilist) {
+//			FeatureVector fv = (FeatureVector) instance.getData ();
+//			List<Integer> indexList = new ArrayList();
+//			List<Double> valueList = new ArrayList();
+//			for (int idx : fv.getIndices()) {
+//				if (fs.contains(idx)) {
+//					indexList.add(idx);
+//					valueList.add(fv.value(idx));
+//				}
+//			}
+//			int[] indices = ArrayListUtils.toIntArray(indexList);
+//			double[] values = ArrayListUtils.toDoubleArray(valueList);
+//			fv.setIndices(indices);
+//			fv.setValues(values);
+//		}
 
 		ilist.setPerLabelFeatureSelection (null);
 		ilist.setFeatureSelection (fs);
