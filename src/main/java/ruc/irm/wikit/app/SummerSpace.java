@@ -47,7 +47,7 @@ public class SummerSpace {
         VectorSpaceModel vsm = new VectorSpaceModel();
 
         File miningDir = new File("/home/xiatian/data/20news-mining-subject");
-        InstanceList instances = load20NGInstances(ngCorpusPath, miningDir, MyPipe.Type.SKIP);
+        InstanceList instances = load20NGInstances(ngCorpusPath, miningDir, MyPipe.Type.PURE_BOW);
 
         for (Instance instance : instances) {
             TokenSequence ts = (TokenSequence)instance.getData();
