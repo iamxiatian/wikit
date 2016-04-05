@@ -456,7 +456,7 @@ public class EspmClassify {
         File rawDir = new File(commandLine.getOptionValue("corpusDir"));
         File miningDir = new File(commandLine.getOptionValue("miningDir"));
 
-        File output = new File("/tmp/espm.expt.txt");
+        File output = new File("/tmp/espm.expt." + classify.topFeatures + ".txt");
         PrintWriter writer = new PrintWriter(new FileWriter(output));
         Map<String, Double> results = new HashedMap();
         for(int fold=0; fold<10; fold++) {
@@ -479,7 +479,6 @@ public class EspmClassify {
                     results.put(entry.getKey(), entry.getValue());
                 }
 
-                writer.println("features:" + classify.topFeatures);
                 writer.println(entry.getKey() + "\t==> " + entry.getValue());
             }
 
