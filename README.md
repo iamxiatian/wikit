@@ -4,6 +4,7 @@
 1. 显性语义分析(clone 来源待补充)
 2. 层次语义路径识别/显性语义路径挖掘
 3. 链接相似度计算
+4. 词语位置加权TextRank的关键词抽取、融合维基百科链接信息的关键词抽取(@see KeywordExtractor)
 
 # 如何运行
 下面仅以Ubuntu系统为例，说明项目如何运行。
@@ -61,7 +62,10 @@
 
 Paper:
 ------------
-David Milne, Ian H. Witten. An open-source toolkit for mining Wikipedia. 
+1. David Milne, Ian H. Witten. An open-source toolkit for mining Wikipedia.
+
+2. 夏天. 词语位置加权TextRank的关键词抽取研究. 现代图书情报技术, 2013, 29(9): 30-34.
+
 
 Project
 --------------

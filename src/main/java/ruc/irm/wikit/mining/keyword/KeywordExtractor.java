@@ -1,13 +1,18 @@
 package ruc.irm.wikit.mining.keyword;
 
-import com.hankcs.hanlp.HanLP;
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
+import com.google.common.io.Files;
+import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
-import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.nlp.segment.SegmentFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -80,4 +85,27 @@ public class KeywordExtractor {
         return sb.toString();
     }
 
+    public static void main(String[] args) throws ParseException, IOException {
+        HelpFormatter helpFormatter = new HelpFormatter();
+        CommandLineParser parser = new PosixParser();
+        Options options = new Options();
+        options.addOption(new Option("f", true, "test file"));
+        Conf conf = new Conf();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (!commandLine.hasOption("f")) {
+            String usage = "Usage: ./run.py KeywordExtractor -f test_file";
+            helpFormatter.printHelp(usage, options);
+            return;
+        }
+
+        KeywordExtractor extractor = new KeywordExtractor(conf);
+        File f = new File(commandLine.getOptionValue("f"));
+        List<String> lines = Files.readLines(f, Charsets.UTF_8);
+        Iterator<String> it = lines.iterator();
+        String title = it.next();
+        String text = Joiner.on("\n").join(it);
+        String keywords = extractor.extractAsString(title, text, 10);
+        System.out.println("Keywords:" + keywords);
+    }
 }
