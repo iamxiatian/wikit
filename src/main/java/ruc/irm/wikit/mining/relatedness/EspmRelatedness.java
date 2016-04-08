@@ -1,7 +1,5 @@
-package ruc.irm.wikit.sr;
+package ruc.irm.wikit.mining.relatedness;
 
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Sets;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.WikitException;
 import ruc.irm.wikit.espm.SemanticPath;

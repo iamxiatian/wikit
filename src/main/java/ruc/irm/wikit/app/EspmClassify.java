@@ -1,9 +1,6 @@
 package ruc.irm.wikit.app;
 
-import cc.mallet.classify.Classifier;
-import cc.mallet.classify.FeatureSelectingClassifierTrainer;
-import cc.mallet.classify.NaiveBayesTrainer;
-import cc.mallet.classify.Trial;
+import cc.mallet.classify.*;
 import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.CsvIterator;
 import cc.mallet.pipe.iterator.FileIterator;
@@ -23,6 +20,7 @@ import java.util.*;
  * <p>
  * Example:
  * ./run.py EspmClassify -dir /home/xiatian/data/20news-18828
+ *  ./run.py EspmClassify -corpusDir /home/xiatian/data/20news-subject -miningDir /home/xiatian/data/20news-mining-subject -raw -esa -espm -espmesa -features 2000
  *
  * @author Tian Xia
  * @date Feb 24, 2016 11:17 AM
@@ -77,8 +75,9 @@ public class EspmClassify {
         //NaiveBayesTrainer trainer = new NaiveBayesTrainer();
         //SVMClassifierTrainer trainer = new SVMClassifierTrainer(new LinearKernel());
 
-        SVMClassifierTrainer baseTrainer = new SVMClassifierTrainer(new LinearKernel());
+        //SVMClassifierTrainer baseTrainer = new SVMClassifierTrainer(new LinearKernel());
         //NaiveBayesTrainer baseTrainer = new NaiveBayesTrainer();
+        MaxEntTrainer baseTrainer = new MaxEntTrainer();
 
         RankedFeatureVector.Factory ranker = null;
         //ranker = new FeatureCounts.Factory();
@@ -425,6 +424,39 @@ public class EspmClassify {
         classify.test(dir, dir2, true, false, false, false, 0);
     }
 
+    private static String outputResult(Map<String, Double> results) {
+        StringBuilder sb = new StringBuilder();
+        if(results.containsKey("PURE_BOW")) {
+            sb.append("BOW\t\t").append(results.get("PURE_BOW")).append("\n");
+        }
+
+        if(results.containsKey("PURE_ESA")) {
+            sb.append("ESA\t\t").append(results.get("PURE_ESA")).append("\n");
+        }
+
+        if(results.containsKey("PURE_ESPM")) {
+            sb.append("ESPM\t\t").append(results.get("PURE_ESPM")).append("\n");
+        }
+
+        if(results.containsKey("PURE_ESPM_ESA")) {
+            sb.append("ESPM+ESA\t\t").append(results.get("PURE_ESPM_ESA")).append("\n");
+        }
+
+        if(results.containsKey("BOW_ESA")) {
+            sb.append("BOW+ESA\t\t").append(results.get("BOW_ESA")).append("\n");
+        }
+
+        if(results.containsKey("BOW_ESPM")) {
+            sb.append("BOW+ESPM\t\t").append(results.get("BOW_ESPM")).append("\n");
+        }
+
+        if(results.containsKey("BOW_ESPM_ESA")) {
+            sb.append("BOW+ESPM+ESA\t\t").append(results.get("BOW_ESPM_ESA")).append("\n");
+        }
+
+        return sb.toString();
+    }
+
     public static void main(String[] args) throws ParseException, IOException {
         //test();
 
@@ -460,6 +492,7 @@ public class EspmClassify {
         PrintWriter writer = new PrintWriter(new FileWriter(output));
         Map<String, Double> results = new HashedMap();
         for(int fold=0; fold<10; fold++) {
+            //第一遍生成topN个features，第2遍得到正确的结果
             classify.test(rawDir, miningDir,
                     commandLine.hasOption("raw"),
                     commandLine.hasOption("esa"),
@@ -478,18 +511,19 @@ public class EspmClassify {
                 } else {
                     results.put(entry.getKey(), entry.getValue());
                 }
-
-                writer.println(entry.getKey() + "\t==> " + entry.getValue());
             }
 
+            writer.println("fold " + fold);
+            writer.println(outputResult(map));
             writer.println("\n");
             writer.flush();
         }
 
         writer.println("AVERAGE for features " + classify.topFeatures);
-        for (Map.Entry<String, Double> entry : results.entrySet()) {
-            writer.println(entry.getKey() + "\t" + entry.getValue());
+        for (String key: results.keySet()) {
+            results.put(key, results.get(key) / 10);
         }
+        writer.println(outputResult(results));
         writer.close();
         System.out.println("I'm DONE!");
         //*/

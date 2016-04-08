@@ -1,4 +1,4 @@
-package ruc.irm.wikit.sr;
+package ruc.irm.wikit.mining.relatedness;
 
 import gnu.trove.map.TIntFloatMap;
 import gnu.trove.map.hash.TIntFloatHashMap;
@@ -6,7 +6,6 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.cli.*;
 import ruc.irm.wikit.cache.LinkCache;
-import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
 import ruc.irm.wikit.cache.impl.LinkCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;

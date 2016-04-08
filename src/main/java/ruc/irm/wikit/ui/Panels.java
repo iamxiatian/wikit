@@ -14,7 +14,7 @@ import ruc.irm.wikit.esa.concept.ConceptCache;
 import ruc.irm.wikit.esa.concept.vector.ConceptIterator;
 import ruc.irm.wikit.esa.concept.vector.ConceptVector;
 import ruc.irm.wikit.model.Page;
-import ruc.irm.wikit.sr.LinkRelatedness;
+import ruc.irm.wikit.mining.relatedness.LinkRelatedness;
 
 import javax.swing.*;
 import java.awt.*;

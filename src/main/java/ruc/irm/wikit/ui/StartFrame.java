@@ -11,7 +11,7 @@ import ruc.irm.wikit.esa.concept.ConceptCache;
 import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.cache.LinkCache;
 import ruc.irm.wikit.cache.impl.LinkCacheRedisImpl;
-import ruc.irm.wikit.sr.LinkRelatedness;
+import ruc.irm.wikit.mining.relatedness.LinkRelatedness;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;

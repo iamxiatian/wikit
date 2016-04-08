@@ -1,11 +1,9 @@
 package ruc.irm.wikit.web.handler;
 
-import com.google.common.collect.Sets;
 import fi.iki.elonen.NanoHTTPD;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import ruc.irm.wikit.cache.ArticleCache;
@@ -15,9 +13,8 @@ import ruc.irm.wikit.cache.impl.LinkCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.common.exception.WikitException;
-import ruc.irm.wikit.expt.RelatednessExpt;
-import ruc.irm.wikit.sr.EspmRelatedness;
-import ruc.irm.wikit.sr.LinkRelatedness;
+import ruc.irm.wikit.mining.relatedness.EspmRelatedness;
+import ruc.irm.wikit.mining.relatedness.LinkRelatedness;
 import ruc.irm.wikit.web.WebContex;
 
 import java.util.ArrayList;

@@ -4,20 +4,17 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
 import org.apache.commons.cli.*;
-import org.apache.commons.compress.utils.IOUtils;
 import ruc.irm.wikit.cache.ArticleCache;
 import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.esa.ESAModel;
 import ruc.irm.wikit.esa.ESAModelImpl;
-import ruc.irm.wikit.sr.LinkRelatedness;
+import ruc.irm.wikit.mining.relatedness.LinkRelatedness;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
