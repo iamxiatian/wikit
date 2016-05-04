@@ -42,17 +42,18 @@ public class ChineseSequence2TokenSequence extends Pipe implements Serializable 
 
         List<Term> terms = HanLP.segment(string.toString());
 
-        if(denydPosSet.isEmpty()) {
-            for (Term term : terms) {
-                if(term.word.length()>=2)
-                    ts.add(new Token(term.word));
+        for (Term term : terms) {
+            if (term.word.length() < 2) {
+                continue;
             }
-        } else {
-            for (Term term : terms) {
-                if(term.word.length()>=2 && !denydPosSet.contains(term.nature.name()))
-                   ts.add(new Token(term.word));
+
+            if (denydPosSet.contains(term.nature.name())) {
+                continue;
             }
+
+            ts.add(new Token(term.word));
         }
+
         carrier.setData(ts);
         return carrier;
     }

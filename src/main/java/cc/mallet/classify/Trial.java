@@ -141,7 +141,6 @@ public class Trial extends ArrayList<Classification>
 		return ((double)numCorrect/(double)numInstances);
 	}
 
-	
 	/** Calculate the recall of the classifier on an instance list for a 
 	    particular target entry */
 	public double getRecall (Object labelEntry)

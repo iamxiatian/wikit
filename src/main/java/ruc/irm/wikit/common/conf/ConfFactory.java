@@ -18,6 +18,15 @@ import java.util.Map;
 public class ConfFactory {
     private static Map<String, Conf> confs = new HashMap<>();
 
+    private static Conf defaultConf = null;
+
+    public static Conf defaultConf() {
+        if (defaultConf == null) {
+            defaultConf = new Conf();
+        }
+        return defaultConf;
+    }
+
     public static Conf createCommonConf() {
         return createConf("conf-common.xml", false);
     }

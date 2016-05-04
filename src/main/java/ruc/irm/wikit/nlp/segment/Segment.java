@@ -1,7 +1,10 @@
 package ruc.irm.wikit.nlp.segment;
 
 import ruc.irm.wikit.common.conf.Conf;
+import ruc.irm.wikit.common.conf.ConfFactory;
+import ruc.irm.wikit.util.ConsoleLoop;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -99,4 +102,18 @@ public interface Segment {
         }
     }
 
+    public static void main(String[] args) {
+        Segment segment = SegmentFactory.getSegment(ConfFactory.defaultConf());
+        System.out.println("Segment demo.");
+        ConsoleLoop.loop(new ConsoleLoop.Handler() {
+            @Override
+            public void handle(String input) throws IOException {
+                List<SegWord> words = segment.tag(input);
+                for (SegWord term : words) {
+                    System.out.print(term.word + "/" + term.pos + " ");
+                }
+                System.out.println();
+            }
+        });
+    }
 }

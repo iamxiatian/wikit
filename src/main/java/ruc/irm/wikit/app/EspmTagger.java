@@ -113,7 +113,7 @@ public class EspmTagger {
                 int id = it.getId();
                 String name = conceptCache.getNameById(id);
                 String value = String.format("%.4f", it.getValue());
-                esaBuffer.append(name).append(id + "|" + name + "|" + value).append("\n");
+                esaBuffer.append(id + "|" + name + "|" + value).append("\n");
             }
             esaBuffer.append("\n");
             List<SemanticPath> paths = espmModel.getSemanticPaths(cv, conceptLimit, 50);
@@ -156,16 +156,17 @@ public class EspmTagger {
             while (it.next()) {
                 int id = it.getId();
                 String name = conceptCache.getNameById(id);
-                esaBuffer.append(name).append(" ");
+                String value = String.format("%.4f", it.getValue());
+                esaBuffer.append(id + "|" + name + "|" + value).append("\n");
             }
-
-
-            List<SemanticPath> paths = espmModel.getSemanticPaths(cv, conceptLimit, 5);
+            esaBuffer.append("\n");
+            List<SemanticPath> paths = espmModel.getSemanticPaths(cv, conceptLimit, 50);
             for (SemanticPath path : paths) {
                 double score = path.getAvgWeight();
                 espmBuffer.append(path.getPathString('/') );
-                espmBuffer.append("/").append(String.format("%.4f", score)).append('\n');
+                espmBuffer.append("|").append(String.format("%.4f", score)).append('\n');
             }
+            espmBuffer.append("\n");
         }
 
         Files.write(espmBuffer, espmFile, Charsets.UTF_8);

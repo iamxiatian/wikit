@@ -17,16 +17,12 @@
 
 package cc.mallet.types;
 
+import cc.mallet.util.MalletLogger;
+
 import java.io.*;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.*;
-
-import cc.mallet.util.ArrayListUtils;
-import cc.mallet.util.MalletLogger;
-import org.apache.commons.io.FileUtils;
-import sun.nio.ch.IOStatus;
+import java.util.logging.Logger;
 
 public class FeatureSelector
 {
@@ -86,7 +82,7 @@ public class FeatureSelector
 			if (numFeatures != -1) { // Select by number of features.
 				int nf = Math.min(numFeatures, ranking.singleSize());
 				for (int i = 0; i < nf; i++) {
-					logger.info("adding feature " + i + " word=" + ilist.getDataAlphabet().lookupObject(ranking.getIndexAtRank(i)));
+					//logger.info("adding feature " + i + " word=" + ilist.getDataAlphabet().lookupObject(ranking.getIndexAtRank(i)));
 					writer.println(ilist.getDataAlphabet().lookupObject(ranking.getIndexAtRank(i)).toString());
 				}
 			} else { // Select by threshold.

@@ -1,6 +1,8 @@
 package ruc.irm.wikit.app;
 
-import cc.mallet.classify.*;
+import cc.mallet.classify.Classifier;
+import cc.mallet.classify.Trial;
+import cc.mallet.classify.evaluate.ConfusionMatrix;
 import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.CsvIterator;
 import cc.mallet.pipe.iterator.FileIterator;
@@ -8,6 +10,11 @@ import cc.mallet.types.*;
 import org.apache.commons.cli.*;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Jedis;
+import ruc.irm.wikit.common.conf.Conf;
+import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.nlp.libsvm.SVMClassifierTrainer;
 import ruc.irm.wikit.nlp.libsvm.kernel.LinearKernel;
 import ruc.irm.wikit.util.mallet.PorterStemmerPipe;
@@ -26,19 +33,28 @@ import java.util.*;
  * @date Feb 24, 2016 11:17 AM
  */
 public class EspmClassify {
+    private static final Logger LOG = LoggerFactory.getLogger(EspmClassify.class);
 
     private String filterFileName = null;
 
     private int topFeatures = 1000;
+    private String redisKeyStartName = "expt:20ng_full:svm:";
+    private Jedis jedis = null;
+
+    public EspmClassify(){
+        Conf conf = ConfFactory.defaultConf();
+        this.jedis = new Jedis(conf.getRedisHost(), conf.getRedisPort(), conf.getRedisTimeout());
+    }
 
     private File getFilterFile() {
-        return new File("/tmp/features", filterFileName + "." + topFeatures);
+        return new File("/home/xiatian/git/ESPM/features", filterFileName + "." + topFeatures);
     }
 
     Pipe makePipe(File homeDir, MyPipe.Type type) {
         return new SerialPipes(new Pipe[]{
                 new Target2Label(),
                 new Input2CharSequence(),
+                new CharSequenceLowercase(),
                 new CharSequence2TokenSequence(),
                 new TokenSequenceRemoveStopwords(),
                 new PorterStemmerPipe(),
@@ -65,43 +81,6 @@ public class EspmClassify {
 
         return instances;
     }
-
-    public Classifier trainClassifier(InstanceList trainingInstances) {
-
-        // Here we use a maximum entropy (ie polytomous logistic regression)
-        //  classifier. Mallet includes a wide variety of classification
-        //  algorithms, see the JavaDoc API for details.
-
-        //NaiveBayesTrainer trainer = new NaiveBayesTrainer();
-        //SVMClassifierTrainer trainer = new SVMClassifierTrainer(new LinearKernel());
-
-        //SVMClassifierTrainer baseTrainer = new SVMClassifierTrainer(new LinearKernel());
-        //NaiveBayesTrainer baseTrainer = new NaiveBayesTrainer();
-        MaxEntTrainer baseTrainer = new MaxEntTrainer();
-
-        RankedFeatureVector.Factory ranker = null;
-        //ranker = new FeatureCounts.Factory();
-        ranker = new InfoGain.Factory();
-        FeatureSelector selector = new FeatureSelector(ranker, topFeatures);
-        File f = getFilterFile();
-        if (!f.exists()) {
-            selector.saveSelectedFeatures(f, trainingInstances);
-            return new NaiveBayesTrainer().train(trainingInstances);
-        } else {
-            return baseTrainer.train(trainingInstances);
-        }
-
-
-
-        //FeatureSelectingClassifierTrainer trainer = new FeatureSelectingClassifierTrainer(baseTrainer, selector);
-
-
-        //Classifier c = trainer.train(trainingInstances);
-        //Classifier c = baseTrainer.train(trainingInstances);
-
-        //return c;
-    }
-
 
     public Classifier loadClassifier(File serializedFile)
             throws FileNotFoundException, IOException, ClassNotFoundException {
@@ -220,90 +199,84 @@ public class EspmClassify {
         System.out.println("Macro:" + macro / labelAlphabet.size());
     }
 
+
+    private void setFilterFileName(String filename) {
+        this.filterFileName = filename;
+    }
+
+
+    private void generateTopFeatures(File rawCorpusDir, File miningDir, int fold, MyPipe.Type type) {
+        //生成topFeatures
+        getFilterFile().delete();
+
+        InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, type);
+        InstanceList[] instanceLists = split(instances, 10);
+
+        InstanceList trainList = instances.cloneEmpty();
+        for (int i = 0; i < instanceLists.length; i++) {
+            if (i == fold) {
+                ;
+            } else {
+                trainList.addAll(instanceLists[i]);
+            }
+        }
+
+        RankedFeatureVector.Factory ranker = null;
+        //ranker = new FeatureCounts.Factory();
+        ranker = new InfoGain.Factory();
+        FeatureSelector selector = new FeatureSelector(ranker, topFeatures);
+        File f = getFilterFile();
+        selector.saveSelectedFeatures(f, trainList);
+    }
+
+    public void runTask(String taskName, File rawCorpusDir, File miningDir, int fold, MyPipe.Type pipeType) {
+        LOG.info("Method: " + taskName + ", Fold: " + fold);
+        setFilterFileName(taskName + "-" + fold);
+
+        //生成topFeatures
+        getFilterFile().delete();
+
+        LOG.debug("Generate features...");
+        generateTopFeatures(rawCorpusDir, miningDir, fold, pipeType);
+
+        LOG.debug("Evaluate...");
+        InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, pipeType);
+        trainAndEvaluate(taskName, instances, fold);
+    }
+
+
     /**
      * fold: 表示十折交叉验证的第几个
      */
-    public Map<String, Double> test(File rawCorpusDir, File miningDir, boolean raw, boolean esa, boolean espm, boolean espmesa, int fold) {
+    public void doFullTest(File rawCorpusDir, File miningDir, boolean raw, boolean esa, boolean espm, boolean espmesa, int fold) {
+
         Map<String, Double> results = new HashedMap();
 
         StringBuilder sb = new StringBuilder();
         if (raw) {
-            System.out.println("process raw data...");
-            this.filterFileName = "PURE_BOW-" + fold;
-            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.PURE_BOW);
-            double accuracy = testTrainSplit(instances, fold);
-
-            sb.append("PURE_BOW\t==> " + accuracy).append("\n");
-            System.out.println("PURE_BOW\t=> " + accuracy);
-            results.put("PURE_BOW", accuracy);
+            runTask("BoW", rawCorpusDir, miningDir, fold, MyPipe.Type.PURE_BOW);
         }
 
         if (esa) {
-            System.out.println("process ESA data...");
-            this.filterFileName = "PURE_ESA-" + fold;
-            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.PURE_ESA);
-            double accuracy = testTrainSplit(instances, fold);
-
-            sb.append("PURE_ESA\t==> " + accuracy).append("\n");
-            System.out.println("PURE_ESA\t=> " + accuracy);
-            results.put("PURE_ESA", accuracy);
-
-
-            this.filterFileName = "BOW_ESA-" + fold;
-            instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.BOW_ESA);
-            accuracy = testTrainSplit(instances, fold);
-
-            sb.append("BOW_ESA\t==> " + accuracy).append("\n");
-            System.out.println("BOW_ESA\t=> " + accuracy);
-            results.put("BOW_ESA", accuracy);
+            runTask("ESA", rawCorpusDir, miningDir, fold, MyPipe.Type.PURE_ESA);
+            runTask("BoW+ESA", rawCorpusDir, miningDir, fold, MyPipe.Type.BOW_ESA);
         }
 
         if (espm) {
-            System.out.println("process ESPM data...");
-            this.filterFileName = "PURE_ESPM-" + fold;
-            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.PURE_ESPM);
-            double accuracy = testTrainSplit(instances, fold);
-
-            sb.append("PURE_ESPM\t==> " + accuracy).append("\n");
-            System.out.println("PURE_ESPM\t=> " + accuracy);
-            results.put("PURE_ESPM", accuracy);
-
-
-            this.filterFileName = "BOW_ESPM-" + fold;
-            instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.BOW_ESPM);
-            accuracy = testTrainSplit(instances, fold);
-
-            sb.append("BOW_ESPM\t==> " + accuracy).append("\n");
-            System.out.println("BOW_ESPM\t=> " + accuracy);
-            results.put("BOW_ESPM", accuracy);
+            runTask("ESPM", rawCorpusDir, miningDir, fold, MyPipe.Type.PURE_ESPM);
+            runTask("BoW+ESPM", rawCorpusDir, miningDir, fold, MyPipe.Type.BOW_ESPM);
         }
 
 
         if (espmesa) {
-            System.out.println("process ESPM and ESA data...");
-            this.filterFileName = "PURE_ESPM_ESA-" + fold;
-            InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.PURE_ESPM_ESA);
-            double accuracy = testTrainSplit(instances, fold);
-
-            sb.append("PURE_ESPM_ESA\t==> " + accuracy).append("\n");
-            System.out.println("PURE_ESPM_ESA\t=> " + accuracy);
-            results.put("PURE_ESPM_ESA", accuracy);
-
-            this.filterFileName = "BOW_ESPM_ESA-" + fold;
-            instances = load20NGInstances(rawCorpusDir, miningDir, MyPipe.Type.BOW_ESPM_ESA);
-            accuracy = testTrainSplit(instances, fold);
-
-            sb.append("BOW_ESPM_ESA\t==> " + accuracy).append("\n");
-            System.out.println("BOW_ESPM_ESA\t=> " + accuracy);
-            results.put("BOW_ESPM_ESA", accuracy);
+            runTask("ESPM+ESA", rawCorpusDir, miningDir, fold, MyPipe.Type.PURE_ESPM_ESA);
+            runTask("BoW+ESPM+ESA", rawCorpusDir, miningDir, fold, MyPipe.Type.BOW_ESPM_ESA);
         }
-
-        String tip = "Fold:" + fold + ", features:" + topFeatures;
-        System.out.println(tip);
-        System.out.println(sb.toString());
-        return results;
     }
 
+    /**
+     * 把数据列表拆分为m等份，每等份里面的类别分布也保持均匀
+     */
     InstanceList[] split(InstanceList instances, int m) {
         List<InstanceList> list = new ArrayList<>();
         for (int i = 0; i < m; i++) {
@@ -322,7 +295,7 @@ public class EspmClassify {
 
         for (Map.Entry<Object, List<Instance>> entry : map.entrySet()) {
             List<Instance> catList = entry.getValue();
-            System.out.println(entry.getKey() + "==>" + catList.size());
+            //System.out.println(entry.getKey() + "==>" + catList.size());
             int index = 0;
             for (Instance instance : catList) {
                 list.get(index).add(instance);
@@ -333,31 +306,9 @@ public class EspmClassify {
         return list.toArray(new InstanceList[m]);
     }
 
-    public double testTrainSplit(InstanceList instances, int fold) {
 
-        int TRAINING = 0;
-        int TESTING = 1;
-        int VALIDATION = 2;
-
-        // Split the input list into training (90%) and testing (10%) lists.
-        // The division takes place by creating a copy of the list,
-        //  randomly shuffling the copy, and then allocating
-        //  instances to each sub-list based on the provided proportions.
-
-        //InstanceList[] instanceLists = instances.split(new Randoms(),  new double[] {0.9, 0.1, 0.0});
-        //InstanceList[] instanceLists = instances.splitInTwoByModulo(6); //1份测试，9份训练
-
-//        InstanceList[] instanceLists = instances.splitInOrder(new double[]{10, 10, 10, 10, 10,
-//                10, 10, 10, 10, 10});
-
+    public void trainAndEvaluate(String name, InstanceList instances, int fold) {
         InstanceList[] instanceLists = split(instances, 10);
-        //cross validate
-        double accuracy = 0;
-        System.out.println(instanceLists.length);
-        for (int i = 0; i < instanceLists.length; i++) {
-            System.out.println("size:" + instanceLists[i].size());
-        }
-
 
         InstanceList trainList = instances.cloneEmpty();
         InstanceList testList = instances.cloneEmpty();
@@ -368,94 +319,93 @@ public class EspmClassify {
                 trainList.addAll(instanceLists[i]);
             }
         }
-        Classifier classifier = trainClassifier(trainList);
-        System.out.println("Training set:" + trainList.size());
-        System.out.println("Test set:" + testList.size());
+
+        SVMClassifierTrainer trainer = new SVMClassifierTrainer(new LinearKernel());
+        Classifier classifier = trainer.train(trainList);
+
         Trial trial = new Trial(classifier, testList);
-        accuracy = trial.getAccuracy();
-        System.out.println("accuracy:" + accuracy);
+        double accuracy = trial.getAccuracy();
 
-        return accuracy;
+        //把P、R和F值等信息保存到Redis中，方便计算
+        String prefix = redisKeyStartName + "features:" + topFeatures + ":" +name + ":fold:" + fold + ":";
+        LabelAlphabet labelAlphabet = classifier.getLabelAlphabet();
+        double macroF = 0;
 
+        for (int i = 0; i < labelAlphabet.size(); i++) {
+            String category = labelAlphabet.lookupLabel(i).toString();
+            String key = prefix + "cat:" + category;
+            jedis.hset(key, "P", String.format("%2.7f",trial.getPrecision(i)));
+            jedis.hset(key, "R", String.format("%2.7f",trial.getRecall(i)));
+            jedis.hset(key, "F", String.format("%2.7f",trial.getF1(i)));
+            macroF = macroF + trial.getF1(i);
+        }
 
-//        int folds = 2; //10
-//        for(int step=0; step<instanceLists.length && step<folds; step++) {
-//            InstanceList trainList = instances.cloneEmpty();
-//            InstanceList testList = instances.cloneEmpty();
-//
-//            for (int i = 0; i < instanceLists.length; i++) {
-//                if(i==step) {
-//                    testList.addAll(instanceLists[i]);
-//                } else{
-//                    trainList.addAll(instanceLists[i]);
-//                }
-//            }
-//
-//            Classifier classifier = trainClassifier(trainList, name + step);
-//            System.out.println("Training set:" + trainList.size());
-//            System.out.println("Test set:" + testList.size());
-//            Trial trial = new Trial(classifier, testList);
-//            System.out.println("accuracy:" + trial.getAccuracy());
-//            accuracy  += trial.getAccuracy();
-//        }
-//
-//        return accuracy/folds;
-
-//        InstanceList trainList = instanceLists[1];
-//        InstanceList testList = instanceLists[0];
-
-        // The third position is for the "validation" set,
-        //  which is a set of instances not used directly
-        //  for training, but available for determining
-        //  when to stop training and for estimating optimal
-        //  settings of nuisance parameters.
-        // Most Mallet ClassifierTrainers can not currently take advantage
-        //  of validation sets.
-
-//        Classifier classifier = trainClassifier(trainList);
-//        return new Trial(classifier, testList);
-        //return null;
+        ConfusionMatrix matrix = new ConfusionMatrix(trial);
+        jedis.set(prefix + "confusion", matrix.toString());
+        jedis.set(prefix + "accuracy", String.format("%2.7f", accuracy));
+        jedis.set(prefix + "macroF", String.format("%2.7f", macroF/labelAlphabet.size()));
     }
 
-    private static void test() {
-        EspmClassify classify = new EspmClassify();
-        File dir = new File("/home/xiatian/data/20news-subject");
-        File dir2 = new File("/home/xiatian/data/20news-mining-subject");
-        classify.test(dir, dir2, true, false, false, false, 0);
+    private double getF1(String name, int topFeatures, String category) {
+        double total = 0;
+        for(int fold=0; fold<10; fold++) {
+            String key = redisKeyStartName + "features:" + topFeatures + ":" +name + ":fold:" + fold + ":cat:" + category;
+            total += Double.parseDouble(jedis.hget(key, "F"));
+        }
+        return total/10;
     }
 
-    private static String outputResult(Map<String, Double> results) {
+    public void showLaTexResult(int topFeatures) {
         StringBuilder sb = new StringBuilder();
-        if(results.containsKey("PURE_BOW")) {
-            sb.append("BOW\t\t").append(results.get("PURE_BOW")).append("\n");
+        Map<String, Double> map = new HashedMap();
+        int catLength = NewsGroupCorpus.Categories.length;
+
+        for (String cat : NewsGroupCorpus.Categories) {
+            sb.append(cat).append(" & ");
+
+            double f1 = getF1("BoW", topFeatures, cat);
+            map.put("BoW", map.getOrDefault("BoW", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1("ESA", topFeatures, cat);
+            map.put("ESA", map.getOrDefault("ESA", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1("ESPM", topFeatures, cat);
+            map.put("ESPM", map.getOrDefault("ESPM", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1("ESPM+ESA", topFeatures, cat);
+            map.put("ESPM+ESA", map.getOrDefault("ESPM+ESA", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1("BoW+ESA", topFeatures, cat);
+            map.put("BoW+ESA", map.getOrDefault("BoW+ESA", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1("BoW+ESPM", topFeatures, cat);
+            map.put("BoW+ESPM", map.getOrDefault("BoW+ESPM", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1("BoW+ESPM+ESA", topFeatures, cat);
+            map.put("BoW+ESPM+ESA", map.getOrDefault("BoW+ESPM+ESA", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" \\\\\n");
         }
 
-        if(results.containsKey("PURE_ESA")) {
-            sb.append("ESA\t\t").append(results.get("PURE_ESA")).append("\n");
-        }
+        sb.append("\\hline\n");
+        sb.append("Macro F1 & ");
+        sb.append(String.format("%2.2f",100 * map.get("BoW")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("ESA")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("ESPM")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("ESPM+ESA")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("BoW+ESA")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("BoW+ESPM")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("BoW+ESPM+ESA")/catLength));
+        sb.append("\\\\\n");
 
-        if(results.containsKey("PURE_ESPM")) {
-            sb.append("ESPM\t\t").append(results.get("PURE_ESPM")).append("\n");
-        }
-
-        if(results.containsKey("PURE_ESPM_ESA")) {
-            sb.append("ESPM+ESA\t\t").append(results.get("PURE_ESPM_ESA")).append("\n");
-        }
-
-        if(results.containsKey("BOW_ESA")) {
-            sb.append("BOW+ESA\t\t").append(results.get("BOW_ESA")).append("\n");
-        }
-
-        if(results.containsKey("BOW_ESPM")) {
-            sb.append("BOW+ESPM\t\t").append(results.get("BOW_ESPM")).append("\n");
-        }
-
-        if(results.containsKey("BOW_ESPM_ESA")) {
-            sb.append("BOW+ESPM+ESA\t\t").append(results.get("BOW_ESPM_ESA")).append("\n");
-        }
-
-        return sb.toString();
+        System.out.println(sb.toString());
     }
+
 
     public static void main(String[] args) throws ParseException, IOException {
         //test();
@@ -471,62 +421,59 @@ public class EspmClassify {
         options.addOption(new Option("espm", false, "view espm classification result."));
         options.addOption(new Option("espmesa", false, "view espmesa classification result."));
         options.addOption(new Option("features", true, "Top number features to users."));
-        options.addOption(new Option("fold", true, "which fold."));
+        options.addOption(new Option("view", false, "View Results"));
+        options.addOption(new Option("corpusType", true, "full|title(full text or title only)"));
+        //options.addOption(new Option("fold", true, "which fold."));
 
 
         String name = EspmClassify.class.getSimpleName();
         CommandLine commandLine = parser.parse(options, args);
-        if (!commandLine.hasOption("corpusDir")) {
+        if (!commandLine.hasOption("corpusDir") && !commandLine.hasOption("view")) {
             String usage = "Usage: run.py " + name + " -corpusDir pathname";
             helpFormatter.printHelp(usage, options);
             return;
         }
 
         EspmClassify classify = new EspmClassify();
-        classify.topFeatures = NumberUtils.toInt(commandLine.getOptionValue("features"), 1000);
+        String featuresParam = commandLine.getOptionValue("features", "1000");
 
-        File rawDir = new File(commandLine.getOptionValue("corpusDir"));
-        File miningDir = new File(commandLine.getOptionValue("miningDir"));
+        if(featuresParam.equals("all")) {
+            classify.topFeatures = Integer.MAX_VALUE;
+        } else {
+            classify.topFeatures = NumberUtils.toInt(featuresParam);
+        }
 
-        File output = new File("/tmp/espm.expt." + classify.topFeatures + ".txt");
-        PrintWriter writer = new PrintWriter(new FileWriter(output));
-        Map<String, Double> results = new HashedMap();
-        for(int fold=0; fold<10; fold++) {
-            //第一遍生成topN个features，第2遍得到正确的结果
-            classify.test(rawDir, miningDir,
-                    commandLine.hasOption("raw"),
-                    commandLine.hasOption("esa"),
-                    commandLine.hasOption("espm"),
-                    commandLine.hasOption("espmesa"), fold);
+        if("title".equals(commandLine.getOptionValue("corpusType"))){
+            classify.redisKeyStartName = "expt:espm:svm"; //it should be "expt:20ng_title:svm:"
+        } else if ("full".equals(commandLine.getOptionValue("corpusType"))) {
+            classify.redisKeyStartName = "expt:20ng_full:svm:";
+        } else {
+            System.out.println("corpusType must be specified: full or title.");
+            return;
+        }
 
-            Map<String, Double> map = classify.test(rawDir, miningDir,
-                    commandLine.hasOption("raw"),
-                    commandLine.hasOption("esa"),
-                    commandLine.hasOption("espm"),
-                    commandLine.hasOption("espmesa"), fold);
+        if(commandLine.hasOption("view")) {
+            classify.showLaTexResult(classify.topFeatures);
+            return;
+        }
 
-            for (Map.Entry<String, Double> entry : map.entrySet()) {
-                if (results.containsKey(entry.getKey())) {
-                    results.put(entry.getKey(), entry.getValue() + results.get(entry.getKey()));
-                } else {
-                    results.put(entry.getKey(), entry.getValue());
-                }
+
+        for(int fc: new int[]{1000, 2000, 3000, 4000, 5000, Integer.MAX_VALUE}) {
+            System.out.println("process feature top :" + fc);
+            classify.topFeatures = fc;
+            File rawDir = new File(commandLine.getOptionValue("corpusDir"));
+            File miningDir = new File(commandLine.getOptionValue("miningDir"));
+
+            for (int fold = 0; fold < 10; fold++) {
+                classify.doFullTest(rawDir, miningDir,
+                        commandLine.hasOption("raw"),
+                        commandLine.hasOption("esa"),
+                        commandLine.hasOption("espm"),
+                        commandLine.hasOption("espmesa"), fold);
             }
 
-            writer.println("fold " + fold);
-            writer.println(outputResult(map));
-            writer.println("\n");
-            writer.flush();
         }
-
-        writer.println("AVERAGE for features " + classify.topFeatures);
-        for (String key: results.keySet()) {
-            results.put(key, results.get(key) / 10);
-        }
-        writer.println(outputResult(results));
-        writer.close();
         System.out.println("I'm DONE!");
-        //*/
     }
 }
 
