@@ -1,6 +1,8 @@
 package ruc.irm.wikit.app;
 
 import cc.mallet.classify.Classifier;
+import cc.mallet.classify.ClassifierTrainer;
+import cc.mallet.classify.NaiveBayesTrainer;
 import cc.mallet.classify.Trial;
 import cc.mallet.classify.evaluate.ConfusionMatrix;
 import cc.mallet.pipe.*;
@@ -28,7 +30,7 @@ import java.util.*;
  * Example:
  * ./run.py EspmClassify -dir /home/xiatian/data/20news-18828
  *  ./run.py EspmClassify -corpusDir /home/xiatian/data/20news-subject -miningDir /home/xiatian/data/20news-mining-subject -raw -esa -espm -espmesa -features 2000
- *
+ * ./run.py ESPMClassify -corpusDir /home/xiatian/data/20news-subject -miningDir /home/xiatian/data/20news-mining-subject -raw -esa -espm -espmesa -corpusType title -modelType nb
  * @author Tian Xia
  * @date Feb 24, 2016 11:17 AM
  */
@@ -39,6 +41,7 @@ public class EspmClassify {
 
     private int topFeatures = 1000;
     private String redisKeyStartName = "expt:20ng_full:svm:";
+    private String modelType = "svm";
     private Jedis jedis = null;
 
     public EspmClassify(){
@@ -233,11 +236,11 @@ public class EspmClassify {
         LOG.info("Method: " + taskName + ", Fold: " + fold);
         setFilterFileName(taskName + "-" + fold);
 
-        //生成topFeatures
-        getFilterFile().delete();
-
-        LOG.debug("Generate features...");
-        generateTopFeatures(rawCorpusDir, miningDir, fold, pipeType);
+//        //生成topFeatures
+//        getFilterFile().delete();
+//
+//        LOG.debug("Generate features...");
+//        generateTopFeatures(rawCorpusDir, miningDir, fold, pipeType);
 
         LOG.debug("Evaluate...");
         InstanceList instances = load20NGInstances(rawCorpusDir, miningDir, pipeType);
@@ -320,7 +323,12 @@ public class EspmClassify {
             }
         }
 
-        SVMClassifierTrainer trainer = new SVMClassifierTrainer(new LinearKernel());
+        ClassifierTrainer trainer = null;
+        if(modelType.equals("svm")) {
+            trainer = new SVMClassifierTrainer(new LinearKernel());
+        } else {
+            trainer = new NaiveBayesTrainer();
+        }
         Classifier classifier = trainer.train(trainList);
 
         Trial trial = new Trial(classifier, testList);
@@ -347,12 +355,68 @@ public class EspmClassify {
     }
 
     private double getF1(String name, int topFeatures, String category) {
+        return getF1(redisKeyStartName, name, topFeatures, category);
+    }
+
+    private double getF1(String startKey, String name, int topFeatures, String category) {
         double total = 0;
-        for(int fold=0; fold<10; fold++) {
-            String key = redisKeyStartName + "features:" + topFeatures + ":" +name + ":fold:" + fold + ":cat:" + category;
+        for(int fold=0; fold<9; fold++) {
+            String key = startKey + "features:" + topFeatures + ":" +name + ":fold:" + fold + ":cat:" + category;
             total += Double.parseDouble(jedis.hget(key, "F"));
         }
-        return total/10;
+        return total/9;
+    }
+
+    private double getAccuracy(String startKey, String name, int topFeatures, String hkey) {
+        double total = 0;
+        for(int fold=0; fold<9; fold++) {
+            String key = startKey + "features:" + topFeatures + ":" +name + ":fold:" + fold + ":" + hkey;
+            total += Double.parseDouble(jedis.get(key));
+        }
+        return total/9;
+    }
+
+    private void outputResult() {
+        StringBuilder sb = new StringBuilder();
+        String hkey = "macroF";
+
+        for(int features: new int[]{1000, 2000, 3000, 4000, 5000, Integer.MAX_VALUE}) {
+            sb.append(features).append(" & ");
+            String startKey = "expt:espm:svm:";
+            double value = getAccuracy(startKey, "BoW", features, hkey);
+            sb.append(String.format("%2.2f", value * 100)).append(" & ");
+
+            value = getAccuracy(startKey, "ESA", features, hkey);
+            sb.append(String.format("%2.2f", value * 100)).append(" & ");
+
+            value = getAccuracy(startKey, "ESPM", features, hkey);
+            sb.append(String.format("%2.2f", value * 100)).append(" & ");
+
+            value = getAccuracy(startKey, "BoW+ESA", features, hkey);
+            sb.append(String.format("%2.2f", value * 100)).append(" & ");
+
+            value = getAccuracy(startKey, "BoW+ESPM", features, hkey);
+            sb.append(String.format("%2.2f", value * 100)).append(" & ");
+
+            startKey = "expt:20ng_full:svm:";
+            value = getAccuracy(startKey, "BoW", features, hkey);
+            sb.append(String.format("%2.2f", value * 100)).append(" & ");
+
+            value = getAccuracy(startKey, "ESA", features, hkey);
+            sb.append(String.format("%2.2f", value * 100)).append(" & ");
+
+            value = getAccuracy(startKey, "ESPM", features, hkey);
+            sb.append(String.format("%2.2f", value * 100)).append(" & ");
+
+            value = getAccuracy(startKey, "BoW+ESA", features, hkey);
+            sb.append(String.format("%2.2f", value * 100)).append(" & ");
+
+            value = getAccuracy(startKey, "BoW+ESPM", features, hkey);
+            sb.append(String.format("%2.2f", value * 100));
+            sb.append(" \\\\ \n");
+        }
+
+        System.out.println(sb.toString());
     }
 
     public void showLaTexResult(int topFeatures) {
@@ -407,6 +471,60 @@ public class EspmClassify {
     }
 
 
+    /**
+     * 同时显示全文和标题的结果
+     *
+     * @param topFeatures
+     * @param startKey1
+     * @param startKey2
+     */
+    public void showLaTexResult(int topFeatures, String startKey1, String startKey2) {
+        StringBuilder sb = new StringBuilder();
+        Map<String, Double> map = new HashedMap();
+        int catLength = NewsGroupCorpus.Categories.length;
+
+        for (String cat : NewsGroupCorpus.Categories) {
+            sb.append(cat).append(" & ");
+
+            double f1 = getF1(startKey1, "BoW", topFeatures, cat);
+            map.put("BoW1", map.getOrDefault("BoW1", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1(startKey1, "ESA", topFeatures, cat);
+            map.put("ESA1", map.getOrDefault("ESA1", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1(startKey1, "ESPM", topFeatures, cat);
+            map.put("ESPM1", map.getOrDefault("ESPM1", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1(startKey2, "BoW", topFeatures, cat);
+            map.put("BoW2", map.getOrDefault("BoW2", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1(startKey2, "ESA", topFeatures, cat);
+            map.put("ESA2", map.getOrDefault("ESA2", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" & ");
+
+            f1 = getF1(startKey2, "ESPM", topFeatures, cat);
+            map.put("ESPM2", map.getOrDefault("ESPM2", 0.0) + f1);
+            sb.append(String.format("%2.2f",f1*100)).append(" \\\\\n");
+        }
+
+        sb.append("\\midrule[\\heavyrulewidth]\n");
+        sb.append("Macro~F1 & ");
+        sb.append(String.format("%2.2f",100 * map.get("BoW1")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("ESA1")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("ESPM1")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("BoW2")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("ESA2")/catLength)).append(" & ");
+        sb.append(String.format("%2.2f",100 * map.get("ESPM2")/catLength));
+        sb.append("\\\\\n");
+
+        System.out.println(sb.toString());
+    }
+
+
     public static void main(String[] args) throws ParseException, IOException {
         //test();
 
@@ -422,17 +540,23 @@ public class EspmClassify {
         options.addOption(new Option("espmesa", false, "view espmesa classification result."));
         options.addOption(new Option("features", true, "Top number features to users."));
         options.addOption(new Option("view", false, "View Results"));
+        options.addOption(new Option("viewall", false, "View all Results"));
         options.addOption(new Option("corpusType", true, "full|title(full text or title only)"));
+        options.addOption(new Option("modelType", true, "svm|nb"));
         //options.addOption(new Option("fold", true, "which fold."));
 
 
         String name = EspmClassify.class.getSimpleName();
         CommandLine commandLine = parser.parse(options, args);
-        if (!commandLine.hasOption("corpusDir") && !commandLine.hasOption("view")) {
+
+        if (commandLine.hasOption("corpusDir") || commandLine.hasOption("view") || commandLine.hasOption("viewall")) {
+
+        } else {
             String usage = "Usage: run.py " + name + " -corpusDir pathname";
             helpFormatter.printHelp(usage, options);
             return;
         }
+
 
         EspmClassify classify = new EspmClassify();
         String featuresParam = commandLine.getOptionValue("features", "1000");
@@ -443,22 +567,35 @@ public class EspmClassify {
             classify.topFeatures = NumberUtils.toInt(featuresParam);
         }
 
+        String modelType = commandLine.getOptionValue("modelType", "svm");
+        classify.modelType = modelType;
+
+
+        if(commandLine.hasOption("view")) {
+            classify.showLaTexResult(classify.topFeatures, "expt:espm:svm:", "expt:20ng_full:svm:");
+            return;
+        }
+
+        if (commandLine.hasOption("viewall")) {
+            classify.outputResult();
+        }
+
         if("title".equals(commandLine.getOptionValue("corpusType"))){
-            classify.redisKeyStartName = "expt:espm:svm"; //it should be "expt:20ng_title:svm:"
+            //classify.redisKeyStartName = "expt:espm:svm"; //it should be "expt:20ng_title:svm:"
+            if (modelType.equalsIgnoreCase("svm")) {
+                classify.redisKeyStartName = "expt:espm:svm:"; //it should be "expt:20ng_title:svm:"
+            } else {
+                classify.redisKeyStartName = "expt:20ng_title:" + modelType + ":";
+            }
         } else if ("full".equals(commandLine.getOptionValue("corpusType"))) {
-            classify.redisKeyStartName = "expt:20ng_full:svm:";
+            classify.redisKeyStartName = "expt:20ng_full:" + modelType + ":";
         } else {
             System.out.println("corpusType must be specified: full or title.");
             return;
         }
 
-        if(commandLine.hasOption("view")) {
-            classify.showLaTexResult(classify.topFeatures);
-            return;
-        }
 
-
-        for(int fc: new int[]{1000, 2000, 3000, 4000, 5000, Integer.MAX_VALUE}) {
+        for(int fc: new int[]{1000, 2000, 3000, Integer.MAX_VALUE}) {
             System.out.println("process feature top :" + fc);
             classify.topFeatures = fc;
             File rawDir = new File(commandLine.getOptionValue("corpusDir"));
