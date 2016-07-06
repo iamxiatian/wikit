@@ -5,15 +5,9 @@ apply plugin: 'java'
 buildscript {
     repositories {
 	    mavenLocal()
-	    maven { url "https://repo.spring.io/libs-release" }
 	    mavenCentral()
     }
-    dependencies {
-        classpath "com.mattwhipple.gradle:gradle-emacs-jdee:0.0.2"
-    }
 }
-
-apply plugin: "com.mattwhipple.emacs-jdee"
 
 group = 'ruc.irm'
 archivesBaseName = 'wikit'
@@ -24,6 +18,14 @@ targetCompatibility = 1.8
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.7'
+}
+
+ext {
+    dl4jVersion = "0.4-rc3.10"
+    nd4jVersion = "0.4-rc3.10"
+    canovaVersion = "0.0.0.16"
+    compileJava.options.encoding = 'UTF-8'
+    compileTestJava.options.encoding = 'UTF-8'
 }
 
 idea {
@@ -44,7 +46,7 @@ repositories {
 }
 
 dependencies {
-    compile(
+     compile(
             files('lib/jsc.jar'),
             files('lib/weka-wrapper-1.0.jar'),
             files('lib/sspace-2.0.4.jar'),
@@ -98,8 +100,17 @@ dependencies {
 			'com.googlecode.matrix-toolkits-java:mtj:0.9.14',
 			'org.jdom:jdom:1.1',
             'org.beanshell:bsh:2.0b4',
+
+            "org.nd4j:nd4j-native:${nd4jVersion}",
+            "org.deeplearning4j:deeplearning4j-nlp:${dl4jVersion}",
+            "org.deeplearning4j:deeplearning4j-core:${dl4jVersion}",
+            "org.deeplearning4j:deeplearning4j-ui:${dl4jVersion}",
+
+             "org.nd4j:canova-nd4j-image:0.0.0.16",
+             "org.nd4j:canova-nd4j-codec:0.0.0.16",
+             "jfree:jfreechart:1.0.13",
+             "org.deeplearning4j:arbiter-deeplearning4j:0.0.0.7",
+
     )
     testCompile('junit:junit:4.11',)
 }
-
-
