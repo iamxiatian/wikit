@@ -7,6 +7,7 @@ import org.deeplearning4j.text.sentenceiterator.LineSentenceIterator;
 import ruc.irm.wikit.data.dump.WikiPageDump;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -54,6 +55,10 @@ public class WikiSentenceIterator extends BaseSentenceIterator {
 
     @Override
     public void reset() {
-        throw new UnsupportedOperationException();
+        try {
+            dump.reset();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

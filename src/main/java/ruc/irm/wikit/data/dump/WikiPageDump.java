@@ -50,6 +50,11 @@ public abstract class WikiPageDump implements Iterator<WikiPage>, Closeable {
 
     public abstract void open() throws IOException;
 
+    public void reset() throws IOException {
+        close();
+        open();
+    }
+
     /**
      * Traverse page dump file with filters
      *

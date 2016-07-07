@@ -4,7 +4,9 @@ import com.hankcs.hanlp.seg.common.wrapper.SegmentWrapper;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.deeplearning4j.text.tokenization.tokenizer.Tokenizer;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
+import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.nlp.segment.Segment;
+import ruc.irm.wikit.nlp.segment.SegmentFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -16,7 +18,7 @@ import java.util.StringTokenizer;
  * @date Jul 06, 2016 17:58
  */
 public class ChineseTokenizer  implements Tokenizer {
-    private Segment segment;
+    private Segment segment = SegmentFactory.getSegment(ConfFactory.defaultConf());
     private Iterator<String> tokens;
     private int tokenCount = 0;
     private TokenPreProcess tokenPreProcess;

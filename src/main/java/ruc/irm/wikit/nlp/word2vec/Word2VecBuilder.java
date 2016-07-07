@@ -70,6 +70,6 @@ public class Word2VecBuilder {
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         String dumpFile = commandLine.getOptionValue("f");
         PageSequenceDump dump = new PageSequenceDump(conf, dumpFile);
-        //Word2VecBuilder.build(dump);
+        Word2VecBuilder.build(dump);
     }
 }
