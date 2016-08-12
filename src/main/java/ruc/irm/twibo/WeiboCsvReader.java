@@ -6,6 +6,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.lang3.StringUtils;
+import redis.clients.jedis.Jedis;
 
 import java.io.*;
 import java.util.Arrays;
@@ -20,8 +21,7 @@ import java.util.Arrays;
  * @date Jul 11, 2016 23:08
  */
 public class WeiboCsvReader {
-
-
+    
     /**
      * 解析存放微博数据的CSV文件，提取出其中的经纬度数据，保存到文本文件输出流中
      */
@@ -31,6 +31,7 @@ public class WeiboCsvReader {
         Reader in = new FileReader(inputCsvFile);
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
         for (CSVRecord record : records) {
+            String userId = record.get("uid");
             String point = record.get("geo");
             if (StringUtils.isEmpty(point)) {
                 continue;
@@ -41,7 +42,7 @@ public class WeiboCsvReader {
             String latitude = lonlat[1].substring(0, lonlat[1].length() - 1);
 
             //System.out.println(items[7]);
-            out.println(longitude + "\t" + latitude);
+            out.println(longitude + "," + latitude + "," + userId);
         }
 
         in.close();
@@ -68,11 +69,8 @@ public class WeiboCsvReader {
             csvFiles[i] = f;
         }
 
-        for (File f : csvFiles) {
-            System.out.println(f.getAbsolutePath());
-        }
 
-        File outFile = new File(path + "/geo.txt");
+        File outFile = new File(path + "/geo.csv");
         outputGeoInfo(csvFiles, outFile);
     }
 }

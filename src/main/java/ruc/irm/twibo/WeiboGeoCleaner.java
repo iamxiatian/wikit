@@ -2,6 +2,7 @@ package ruc.irm.twibo;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.Jedis;
 import ruc.irm.wikit.common.conf.Conf;
@@ -11,7 +12,12 @@ import java.text.DecimalFormat;
 import java.util.Set;
 
 /**
- * 微博经纬度坐标的清洗处理： 坐标精度保留6为小数，去除极少数的科学计数法坐标和0,0坐标
+ * 微博经纬度坐标的清洗处理： 坐标精度保留6为小数，去除极少数的科学计数法坐标和0,0坐标，
+ *
+ * 坐标信息保存到Redis中，首先把每一个经度（小数精度保留6位）保存在SortedSet中，key为
+ * longitude:all， sorted set的元素名称为经度的字符串，元素对应的数值权重为经度值。
+ * 然后把每一个经度下的所有维度，也都保存在Redis的SortedSet中，Key为“lon:经度值”，元素
+ * 为维度值对应的字符串，权重为维度值
  *
  * @author Tian Xia
  * @date Aug 04, 2016 00:24
@@ -25,9 +31,9 @@ public class WeiboGeoCleaner {
     }
 
     /**
-     * 首先按照经度从大到小排序，相同经度则按照维度从大到小排序
+     * 首先按照经度从大到小排序，相同经度则按照维度从大到小排序，在Redis中建立映射关系
      */
-    public void sort(File geoFile) throws IOException {
+    public void sortInRedis(File geoFile) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(geoFile));
         String line = null;
         DecimalFormat df = new DecimalFormat("0.000000");
@@ -46,7 +52,7 @@ public class WeiboGeoCleaner {
             String s1 = df.format(d1);
             String s2 = df.format(d2);
 
-            //把经度加到sorted set中
+            //把经度加到sorted set中, 哈希主键为经度的字符串，哈希值为经度的数值，从而实现按照经度排序
             jedis.zadd("longitude:all", d1, s1);
 
             //把该经度下的维度加入到sorted set中
@@ -108,13 +114,9 @@ public class WeiboGeoCleaner {
     }
 
     public static void main(String[] args) throws IOException {
-//        DecimalFormat df = new DecimalFormat("0.000000");
-//        double d = Double.parseDouble("-1e2");
-//        String s = df.format(d);
-//        System.out.println(s);
         WeiboGeoCleaner cleaner = new WeiboGeoCleaner();
         File f = new File("/home/xiatian/data/weibo/geo.txt");
-        cleaner.sort(f);
+        cleaner.sortInRedis(f);
         cleaner.dump("/home/xiatian/data/weibo/duplicate_keep/geo-");
     }
 }
