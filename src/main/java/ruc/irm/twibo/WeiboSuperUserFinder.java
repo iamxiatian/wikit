@@ -30,6 +30,10 @@ public class WeiboSuperUserFinder {
         this.lookup = new GeoCountryLookup(jedis);
     }
 
+    public void clear() {
+        jedis.del(redisKey);
+    }
+
     /**
      * 扫描当前的微博原始CSV文件，如果用户在发布消息时的地理位置位于大陆之外，则记录到Redis中
      *
@@ -83,6 +87,43 @@ public class WeiboSuperUserFinder {
         }
     }
 
+    /**
+     * 扫描当前的微博原始CSV文件，如果用户在发布消息时的地理位置位于大陆之外，则记录到Redis中
+     *
+     * @throws IOException
+     */
+    private void findOverseaUsers(File candidateUserCSV) throws IOException {
+        System.out.println("Process candidate oversea CSV file " + candidateUserCSV.getAbsolutePath() + "...");
+
+        Reader in = new FileReader(candidateUserCSV);
+        //Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+        Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
+        ProgressCounter counter = new ProgressCounter();
+        for (CSVRecord record : records) {
+            String longitude = record.get(0);
+            String latitude = record.get(1);
+            String userId = record.get(2);
+            String country = lookup.getCountry(longitude, latitude);
+            if (country.equalsIgnoreCase("China")) {
+                continue;
+            }
+
+            if (jedis.hexists(redisKey, userId)) {
+                String value = jedis.hget(redisKey, userId);
+                List<String> countries = Splitter.on(",").splitToList(value);
+                if (!countries.contains(country)) {
+                    value += "," + country;
+                    jedis.hset(redisKey, userId, value);
+                }
+            } else {
+                jedis.hset(redisKey, userId, country);
+            }
+            counter.increment();
+        }
+        counter.done();
+        in.close();
+    }
+
     public void dump(File outFile) throws IOException {
         PrintWriter writer = new PrintWriter(new FileWriter(outFile));
         Set<String> hkeys = jedis.hkeys(redisKey);
@@ -105,6 +146,7 @@ public class WeiboSuperUserFinder {
         Options options = new Options();
         options.addOption(new Option("df", true, "Dump File: dump all oversea users to this file"));
         options.addOption(new Option("scan", false, "Scan all files to find oversea users."));
+        options.addOption(new Option("find", true, "find all oversea users for given candidate user list."));
 
         CommandLine commandLine = parser.parse(options, args);
         WeiboSuperUserFinder finder = new WeiboSuperUserFinder();
@@ -113,6 +155,8 @@ public class WeiboSuperUserFinder {
             finder.dump(outFile);
         } else if (commandLine.hasOption("scan")) {
             finder.scanAll();
+        } else if (commandLine.hasOption("find")) {
+            finder.findOverseaUsers(new File(commandLine.getOptionValue("find")));
         }
 
         System.out.println("I'm DONE!");

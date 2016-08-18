@@ -21,7 +21,7 @@ public interface Segment {
     public void setConfiguration(Conf conf);
 
     /**
-     * 切分句子，切分结果按照词语存入List中
+     * 切分句子，不做词性标注处理，切分结果按照词语存入List中
      *
      * @param sentence
      * @return
