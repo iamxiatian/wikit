@@ -1,6 +1,7 @@
 package ruc.irm.wikit.web.servlet;
 
 import ruc.irm.wikit.common.conf.Conf;
+import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.esa.ESAModel;
 import ruc.irm.wikit.esa.ESAModelImpl;
 import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
@@ -54,11 +55,11 @@ public class WikitServlet extends HttpServlet {
 
         StringBuilder sb = new StringBuilder();
         try {
-            Conf conf = new Conf();
+            Conf conf = null;
             if ("en".equalsIgnoreCase(lang)) {
-                conf.set("esa.language", "English");
+                conf = ConfFactory.createEnConf();
             } else {
-                conf.set("esa.language", "Chinese");
+                conf = ConfFactory.createZhConf();
             }
 
             ESAModel esaModel = new ESAModelImpl(conf);
@@ -77,13 +78,20 @@ public class WikitServlet extends HttpServlet {
                 return;
             }
 
+
+            sb.append("<result state=\"OK\">\n");
+
             ConceptIterator it = cv.orderedIterator();
+            int count = 0;
+            while (it.next() && count++ < 5) {
+                sb.append("\t<concept>").append(conceptCache.getNameById(it.getId())).append("</concept>\n");
+            }
+
             int cptLimit = 20;
             SortedMap<Integer, Double> probability = ESPM.getCategoryDistribution(cv, cptLimit);
             //System.out.println(ESPM.printCategoryDistribution(probability));
             List<SemanticPath> paths = ESPM.getSemanticPaths(ESPM.constructCategoryTree(probability), 10);
 
-            sb.append("<result state=\"OK\">\n");
             for (SemanticPath path : paths) {
                 sb.append("\t<path>").append(path.getPathString()).append("</path>\n");
             }
