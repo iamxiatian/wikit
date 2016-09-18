@@ -55,6 +55,12 @@ public class WikitServlet extends HttpServlet {
         StringBuilder sb = new StringBuilder();
         try {
             Conf conf = new Conf();
+            if ("en".equalsIgnoreCase(lang)) {
+                conf.set("esa.language", "English");
+            } else {
+                conf.set("esa.language", "Chinese");
+            }
+
             ESAModel esaModel = new ESAModelImpl(conf);
             ConceptCacheRedisImpl conceptCache = new ConceptCacheRedisImpl(conf);
             SemanticPathMining ESPM = new SemanticPathMiningWikiImpl(conf);
@@ -65,7 +71,7 @@ public class WikitServlet extends HttpServlet {
                         "text, current limit is " + 20);
                 writer.write("<result state=\"ERROR\">");
                 writer.write("<![CDATA[");
-                writer.write("没有有效的词语，原始输出为：" + text);
+                writer.write("没有有效的实体词语，原始输入为：" + text);
                 writer.write("]]></result>");
                 writer.close();
                 return;
