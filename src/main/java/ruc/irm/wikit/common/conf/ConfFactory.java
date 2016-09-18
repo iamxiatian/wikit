@@ -32,11 +32,11 @@ public class ConfFactory {
     }
 
     public static Conf createZhConf() {
-        return createConf("conf-chinese.xml", false);
+        return createConf("conf/conf-chinese.xml", false);
     }
 
     public static Conf createEnConf() {
-        return createConf("conf-english.xml", false);
+        return createConf("conf/conf-english.xml", false);
     }
 
     public static Conf createConf(String resource, boolean isFileResource) {
@@ -116,4 +116,9 @@ public class ConfFactory {
         return null;
     }
 
+    public static void main(String[] args) {
+        Conf conf = ConfFactory.createZhConf();
+        System.out.println("lang:" + conf.getEsaLanguage());
+        System.out.println("prefix:" + conf.get("redis.prefix"));
+    }
 }
