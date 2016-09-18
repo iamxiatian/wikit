@@ -75,7 +75,7 @@ public class WikitServlet extends HttpServlet {
             int cptLimit = 20;
             SortedMap<Integer, Double> probability = ESPM.getCategoryDistribution(cv, cptLimit);
             //System.out.println(ESPM.printCategoryDistribution(probability));
-            List<SemanticPath> paths = ESPM.getSemanticPaths(ESPM.constructCategoryTree(probability), 20);
+            List<SemanticPath> paths = ESPM.getSemanticPaths(ESPM.constructCategoryTree(probability), 10);
 
             sb.append("<result state=\"OK\">\n");
             for (SemanticPath path : paths) {
