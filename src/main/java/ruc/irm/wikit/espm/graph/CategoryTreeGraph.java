@@ -159,6 +159,28 @@ public interface CategoryTreeGraph extends NameIdMapping, Cache {
     public void build() throws WikitException;
 
 
+    /**
+     * 输出深度小于等于3的类别,并进行编号
+     */
+    default public void exportLevel3Categories() {
+        Set<String> names1 = getLevelOneCategoryNames();
+        int startL1Id = 21;
+        for (String name1 : names1) {
+            System.out.println((startL1Id++) + "\t" + name1);
+            Set<String> names2 = getChildNames(name1);
+            int startL2Id = 1;
+            for (String name2 : names2) {
+                System.out.println("\t" + String.format("%03d",startL2Id++) + "\t" + name2);
+
+                Set<String> names3 = getChildNames(name2);
+                int startL3Id = 1;
+                for (String name3 : names3) {
+                    System.out.println("\t\t" + String.format("%03d",startL3Id++) + "\t" + name3);
+                }
+            }
+        }
+    }
+
 
     /**
      * 把某个类别下的所有类别信息输出到文件中，以Technology为例，输出格式为：
@@ -211,7 +233,7 @@ public interface CategoryTreeGraph extends NameIdMapping, Cache {
         options.addOption(new Option("test", false, "loop test on terminal"));
         options.addOption(new Option("stat", false, "show statistics info"));
 
-        options.addOption(new Option("tmp", false, "Do temp work, please see source code."));
+        options.addOption(new Option("exp", false, "Output all categories if their depth is less or equal 3."));
 
         CommandLine commandLine = parser.parse(options, args);
         if (!commandLine.hasOption("c")) {
@@ -321,11 +343,12 @@ public interface CategoryTreeGraph extends NameIdMapping, Cache {
         }
 
 
-        if (commandLine.hasOption("tmp")) {
-            PrintWriter writer = new PrintWriter(Files.newWriter(new File("/tmp/tech.txt"), Charsets.UTF_8));
-            int startId = treeGraph.getIdByName("Technology", 0);
-            treeGraph.exportSubCategory(writer, "", startId, true);
-            writer.close();
+        if (commandLine.hasOption("exp")) {
+//            PrintWriter writer = new PrintWriter(Files.newWriter(new File("/tmp/tech.txt"), Charsets.UTF_8));
+//            int startId = treeGraph.getIdByName("Technology", 0);
+//            treeGraph.exportSubCategory(writer, "", startId, true);
+//            writer.close();
+            treeGraph.exportLevel3Categories();
         }
     }
 }

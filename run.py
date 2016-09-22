@@ -50,9 +50,9 @@ def getlibraries(HOME):
 	jars = jars + split_char + HOME + "/my_conf"
 	jars = jars + split_char + HOME + "/src/main/resources"
 	jars = jars + split_char + HOME + "/src/main/java"
-	jars = jars + split_char + HOME + "/target/classes"
+	jars = jars + split_char + HOME + "/build/classes/main"
 
-	libdir = HOME + "/target/dependency"
+	libdir = HOME + "/dist"
 	for jar in os.listdir(libdir):
 		if(jar==".svn"):continue
 		fullname = os.path.join(libdir,jar)
@@ -79,7 +79,7 @@ if(len(sys.argv)==1):
 	print "usage:./run.py ClassName Parameters"
 else:
 	args = sys.argv
-	className =  get_full_class_name(args[1], './target/classes')
+	className =  get_full_class_name(args[1], './build/classes/main')
 	command = command + ' ' + className
 	for i in range(2,len(args)):
 		command = command + ' "' + args[i] + '"'

@@ -7,6 +7,7 @@ import ruc.irm.wikit.esa.ESAModelImpl;
 import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.esa.concept.vector.ConceptIterator;
 import ruc.irm.wikit.esa.concept.vector.ConceptVector;
+import ruc.irm.wikit.espm.NameCodeMapping;
 import ruc.irm.wikit.espm.SemanticPath;
 import ruc.irm.wikit.espm.SemanticPathMining;
 import ruc.irm.wikit.espm.impl.SemanticPathMiningWikiImpl;
@@ -18,7 +19,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedMap;
 
 /**
@@ -65,6 +68,7 @@ public class WikitServlet extends HttpServlet {
             ESAModel esaModel = new ESAModelImpl(conf);
             ConceptCacheRedisImpl conceptCache = new ConceptCacheRedisImpl(conf);
             SemanticPathMining ESPM = new SemanticPathMiningWikiImpl(conf);
+            NameCodeMapping nameCodeMapping = NameCodeMapping.getInstance(conf);
 
             ConceptVector cv = esaModel.getCombinedVector(text, 20); //20
             if (cv == null) {
@@ -92,8 +96,53 @@ public class WikitServlet extends HttpServlet {
             //System.out.println(ESPM.printCategoryDistribution(probability));
             List<SemanticPath> paths = ESPM.getSemanticPaths(ESPM.constructCategoryTree(probability), 10);
 
+            Set<String> genereated = new HashSet<>();
+
+            NameCodeMapping.Node root = nameCodeMapping.getRoot();
             for (SemanticPath path : paths) {
-                sb.append("\t<path>").append(path.getPathString()).append("</path>\n");
+                //分类名称（分类代码）/分类名称（分类代码）/分类名称（分类代码）/
+                if(path.length()<4) continue;
+                String name1 = path.name(1);
+                String name2 = path.name(2);
+                String name3 = path.name(3);
+
+                String key = name1 + name2 + name3;
+                if (genereated.contains(key)) {
+                    continue;
+                } else {
+                    genereated.add(key);
+                }
+
+                sb.append("\t<path>").append(name1).append("(");
+                NameCodeMapping.Node node1 = root.findChild(name1);
+                if (node1 == null) {
+                    sb.append("00)/");
+                } else {
+                    sb.append(node1.code).append(")/");
+                }
+
+                NameCodeMapping.Node node2 = null, node3 = null;
+                if(node1!=null) {
+                    node2 = node1.findChild(name2);
+                }
+
+                sb.append(name2).append("(");
+                if (node2 == null) {
+                    sb.append("000)/");
+                } else {
+                    sb.append(node2.code).append(")/");
+                }
+
+                if (node2 != null) {
+                    node3 = node2.findChild(name3);
+                }
+                sb.append(name3).append("(");
+                if (node3 == null) {
+                    sb.append("000)/");
+                } else {
+                    sb.append(node3.code).append(")/");
+                }
+                sb.append("</path>\n");
             }
             sb.append("</result>");
 

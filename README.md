@@ -64,8 +64,7 @@ Paper:
 ------------
 1. David Milne, Ian H. Witten. An open-source toolkit for mining Wikipedia.
 
-2. 夏天. 词语位置加权TextRank的关键词抽取研究. 现代图书情报技术, 2013, 29(9): 30-34.
-
+2. Explicit semantic path mining via wikipedia knowledge tree, Proceedings of the Association for Information Science and Technology. (DOI: 10.1002/meet.2014.14505101160)
 
 Project
 --------------
