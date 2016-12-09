@@ -58,6 +58,12 @@
         $./run.py LinkCache -c expt/conf/conf-chinese.xml -build
         
         
+# 其他常用命令
+1. 生成维基百科指定类别下的子树：
+```
+./run.py TitleExporter -c expt/conf/conf-english.xml -ec -cf /tmp/applied_science.txt -title "Applied sciences"
+```
+        
 # Reference
 
 Paper:

@@ -3,7 +3,10 @@ package ruc.irm.wikit.data.export;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import de.tudarmstadt.ukp.wikipedia.api.CategoryGraph;
 import org.apache.commons.cli.*;
+import ruc.irm.wikit.cache.CategoryCache;
+import ruc.irm.wikit.cache.impl.CategoryCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.common.exception.MissedException;
@@ -28,9 +31,68 @@ import static java_cup.emit.prefix;
 public class TitleExporter {
     //private CategoryTreeGraph treeGraph = null;
     private Conf conf = null;
+    private CategoryCache categoryCache = null;
+    private CategoryTreeGraph treeCache = null;
+    private Set<String> visitedCategories = new HashSet<>();
 
-    public TitleExporter(Conf conf) {
+    public TitleExporter(Conf conf) throws MissedException {
         this.conf = conf;
+        this.categoryCache = new CategoryCacheRedisImpl(conf);
+        this.treeCache = new CategoryTreeGraphRedisImpl(conf);
+    }
+
+    public void exportCategoryTree(File f, String name) throws MissedException, IOException {
+        //CategoryTreeGraph treeGraph = new CategoryTreeGraphRedisImpl(conf);
+        this.visitedCategories.clear();
+        int parentId = categoryCache.getIdByName(name, 0);
+        PrintWriter writer = new PrintWriter(Files.newWriter(f, Charsets.UTF_8));
+        exportCategoryTree(writer, parentId, 0);
+        writer.close();
+    }
+
+    /**
+     * 递归导出某个类别下的所有子类，按照距离父类的距离用Tabh划分层级
+     * @param writer
+     * @param parentId
+     * @param indentCount
+     * @throws MissedException
+     */
+    private void exportCategoryTree(PrintWriter writer, int parentId, int indentCount) throws MissedException {
+        if(indentCount<=2) {
+            Set<Integer> childIds = categoryCache.getChildIds(parentId);
+
+            if (childIds != null || childIds.size() > 0) {
+                for (int id : childIds) {
+                    String name = categoryCache.getNameById(id);
+                    if(name.equalsIgnoreCase("Years") || name.equalsIgnoreCase("Decades")) continue;
+
+                    for(int i=0; i<indentCount; i++) {
+                        writer.print("\t");
+                    }
+                    writer.println(name);
+
+                    exportCategoryTree(writer, id, (indentCount+1));
+                }
+            }
+        } else {
+            Set<Integer> childIds = treeCache.getChildIds(parentId);
+
+            if (childIds != null || childIds.size() > 0) {
+                for (int id : childIds) {
+                    String name = treeCache.getNameById(id);
+                    if (name.equalsIgnoreCase("Years") || name.equalsIgnoreCase("Decades")
+                            || name.startsWith("Timelines")
+                            || name.contains(" lists")) continue;
+
+                    for (int i = 0; i < indentCount; i++) {
+                        writer.print("\t");
+                    }
+                    writer.println(name);
+
+                    exportCategoryTree(writer, id, (indentCount + 1));
+                }
+            }
+        }
     }
 
     private void exportSubCategory(PrintWriter writer, String fromCategoryName) throws MissedException {
@@ -108,6 +170,7 @@ public class TitleExporter {
         options.addOption(new Option("c", true, "config file"));
         options.addOption(new Option("cf", true, "category file."));
         options.addOption(new Option("ec", false, "export category to file."));
+        options.addOption(new Option("title", true, "category title."));
         options.addOption(new Option("af", true, "article file."));
         options.addOption(new Option("df", true, "wiki dump file."));
         options.addOption(new Option("ea", false, "export category to file."));
@@ -121,12 +184,12 @@ public class TitleExporter {
 
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         TitleExporter exporter = new TitleExporter(conf);
-        if(commandLine.hasOption("ec") && commandLine.hasOption("cf")) {
+        if(commandLine.hasOption("ec") && commandLine.hasOption("cf") && commandLine.hasOption("title")) {
             System.out.println("save categories to file:" + commandLine.getOptionValue("cf"));
             File cf = new File(commandLine.getOptionValue("cf"));
-            PrintWriter writer = new PrintWriter(Files.newWriter(cf, Charsets.UTF_8));
-            exporter.exportSubCategory(writer, "Technology");
-            writer.close();
+            String title = commandLine.getOptionValue("title");
+            exporter.exportCategoryTree(cf, title);
+            System.out.println("I'm DONE!");
             return;
         }
 
