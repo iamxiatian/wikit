@@ -3,9 +3,9 @@ package ruc.irm.wikit.data.dump.filter;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import ruc.irm.wikit.common.conf.Conf;
-import ruc.irm.wikit.db.MongoClient;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
+import ruc.irm.wikit.db.MongoClient;
 import ruc.irm.wikit.util.GZipUtils;
 
 /**

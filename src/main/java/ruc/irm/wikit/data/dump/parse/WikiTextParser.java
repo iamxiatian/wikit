@@ -1,9 +1,7 @@
 package ruc.irm.wikit.data.dump.parse;
 
 import de.tudarmstadt.ukp.wikipedia.parser.Link;
-import de.tudarmstadt.ukp.wikipedia.parser.Paragraph;
 import de.tudarmstadt.ukp.wikipedia.parser.ParsedPage;
-import de.tudarmstadt.ukp.wikipedia.parser.Section;
 import de.tudarmstadt.ukp.wikipedia.parser.mediawiki.MediaWikiParser;
 import de.tudarmstadt.ukp.wikipedia.parser.mediawiki.MediaWikiParserFactory;
 

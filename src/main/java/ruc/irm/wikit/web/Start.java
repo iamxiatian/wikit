@@ -4,12 +4,6 @@ package ruc.irm.wikit.web;
  * @author Tian Xia
  * @date Jan 22, 2016 11:20 PM
  */
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.IStatus;
@@ -19,6 +13,9 @@ import org.apache.commons.cli.*;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.web.handler.*;
+
+import java.io.*;
+import java.util.Map;
 
 public class Start extends RouterNanoHTTPD {
 

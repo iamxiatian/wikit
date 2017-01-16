@@ -4,7 +4,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.analysis.TokenStream;
 import redis.clients.jedis.Jedis;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.data.dump.parse.WikiPage;

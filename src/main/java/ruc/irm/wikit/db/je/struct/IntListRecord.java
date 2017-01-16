@@ -1,7 +1,6 @@
 package ruc.irm.wikit.db.je.struct;
 
 import ruc.irm.wikit.db.je.Record;
-import ruc.irm.wikit.util.NumberUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

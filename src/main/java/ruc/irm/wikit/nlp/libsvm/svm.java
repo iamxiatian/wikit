@@ -4,7 +4,8 @@ import ruc.irm.wikit.nlp.libsvm.kernel.CustomKernel;
 import ruc.irm.wikit.nlp.libsvm.kernel.KernelManager;
 
 import java.io.*;
-import java.util.*;
+import java.util.Random;
+import java.util.StringTokenizer;
 
 //
 // Kernel Cache

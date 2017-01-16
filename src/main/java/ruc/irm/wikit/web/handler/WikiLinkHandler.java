@@ -1,8 +1,6 @@
 package ruc.irm.wikit.web.handler;
 
 import fi.iki.elonen.NanoHTTPD;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -18,10 +16,7 @@ import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.web.WebContex;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

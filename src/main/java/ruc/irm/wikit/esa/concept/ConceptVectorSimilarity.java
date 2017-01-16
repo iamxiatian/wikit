@@ -1,9 +1,7 @@
 package ruc.irm.wikit.esa.concept;
 
 import gnu.trove.map.TIntDoubleMap;
-import gnu.trove.map.TIntFloatMap;
 import gnu.trove.map.hash.TIntDoubleHashMap;
-import gnu.trove.map.hash.TIntFloatHashMap;
 import ruc.irm.wikit.esa.concept.vector.ConceptIterator;
 import ruc.irm.wikit.esa.concept.vector.ConceptVector;
 import ruc.irm.wikit.util.SimUtils;

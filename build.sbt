@@ -5,7 +5,6 @@ scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
 
-libraryDependencies += "com.github.haifengl" % "smile-scala_2.11" % "1.2.0" //simile machine learning
 libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0" //command line parser
 
 //wiki libs
@@ -28,6 +27,28 @@ libraryDependencies += "com.hankcs" % "hanlp" % "portable-1.2.11"
 libraryDependencies += "org.nlpcn" % "nlp-lang" % "1.6"
 libraryDependencies += "org.ansj" % "ansj_seg" % "5.0.1"
 libraryDependencies += "org.ahocorasick" % "ahocorasick" % "0.3.0"
+libraryDependencies += "org.apache.opennlp" % "opennlp-tools" % "1.6.0"
+
+//Lucene
+libraryDependencies += "org.apache.lucene" % "lucene-core" % "4.7.0"
+libraryDependencies += "org.apache.lucene" % "lucene-queryparser" % "4.7.0"
+libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "4.7.0"
+libraryDependencies += "org.apache.lucene" % "lucene-queries" % "4.7.0"
+libraryDependencies += "org.apache.lucene" % "lucene-misc" % "4.7.0"
+libraryDependencies += "org.apache.lucene" % "lucene-spatial" % "4.7.0"
+libraryDependencies += "org.apache.lucene" % "lucene-suggest" % "4.7.0"
+
+libraryDependencies += "com.alibaba" % "fastjson" % "1.2.16"
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.4.0"
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-annotations" % "2.4.0"
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.0"
+
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.29"
+libraryDependencies += "redis.clients" % "jedis" % "2.4.2"
+libraryDependencies += "com.sleepycat" % "je" % "5.0.73"
+libraryDependencies += "org.mongodb" % "mongo-java-driver" % "3.1.0"
+libraryDependencies += "de.erichseifert.gral" % "gral-core" % "0.10"
+
 
 libraryDependencies += "edu.ucla.sspace" % "sspace" % "2.0.4"
 libraryDependencies += "com.fasterxml.util" % "java-merge-sort" % "1.0.0"
@@ -42,6 +63,11 @@ libraryDependencies += "org.beanshell" % "bsh" % "2.0b4"
 libraryDependencies += "com.googlecode.matrix-toolkits-java" % "mtj" % "0.9.14"
 libraryDependencies += "org.jdom" % "jdom" % "1.1"
 libraryDependencies += "net.sf.jwordnet" % "jwnl" % "1.4_rc3"
+
+// Nano web interface
+libraryDependencies += "org.freemarker" % "freemarker" % "2.3.23"
+libraryDependencies += "org.nanohttpd" % "nanohttpd" % "2.3.1"
+libraryDependencies += "javax.servlet " % "javax.servlet-api" % "3.0.1"
 
 libraryDependencies += "junit" % "junit" % "4.12"
 
@@ -58,9 +84,9 @@ resolvers ++= Seq(
   "nlpcn" at "http://maven.nlpcn.org/"
 )
 
-assemblyJarName in assembly := "zhinang-nlp.jar"
+assemblyJarName in assembly := "wikit.jar"
 test in assembly := {}
-mainClass in assembly := Some("HTTP")
+mainClass in assembly := Some("Main")
 
 assemblyMergeStrategy in assembly := {
   case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first

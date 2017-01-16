@@ -1,8 +1,6 @@
 package ruc.irm.wikit.db.je.struct;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import ruc.irm.wikit.db.je.Record;
-import ruc.irm.wikit.util.GZipUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

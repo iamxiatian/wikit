@@ -1,16 +1,13 @@
 package ruc.irm.wikit.espm;
 
 import com.mysql.jdbc.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.WikitException;
 import ruc.irm.wikit.espm.graph.CategoryTreeGraph;
 import ruc.irm.wikit.espm.graph.CategoryTreeGraphRedisImpl;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
 
 /**
  * Calculate the random walk probability between two ESPM paths

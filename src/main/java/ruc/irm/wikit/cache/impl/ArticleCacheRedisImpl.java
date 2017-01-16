@@ -1,27 +1,19 @@
 package ruc.irm.wikit.cache.impl;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
+import ruc.irm.wikit.cache.ArticleCache;
+import ruc.irm.wikit.cache.NameIdMapping;
 import ruc.irm.wikit.cache.RedirectCache;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.exception.MissedException;
-import ruc.irm.wikit.cache.ArticleCache;
-import ruc.irm.wikit.cache.NameIdMapping;
-import ruc.irm.wikit.data.dump.WikiPageDump;
-import ruc.irm.wikit.data.dump.impl.PageXmlDump;
-import ruc.irm.wikit.data.dump.parse.WikiPage;
-import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 import ruc.irm.wikit.util.NumberUtils;
 import ruc.irm.wikit.util.ProgressCounter;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

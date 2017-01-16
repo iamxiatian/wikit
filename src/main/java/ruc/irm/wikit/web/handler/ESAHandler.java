@@ -1,19 +1,6 @@
 package ruc.irm.wikit.web.handler;
 
-import com.google.common.collect.MapMaker;
-import com.google.common.collect.Maps;
 import fi.iki.elonen.NanoHTTPD;
-import gnu.trove.procedure.TIntProcedure;
-import gnu.trove.set.TIntSet;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
-import ruc.irm.wikit.cache.ArticleCache;
-import ruc.irm.wikit.cache.LinkCache;
-import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
-import ruc.irm.wikit.cache.impl.LinkCacheRedisImpl;
-import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.common.exception.WikitException;
 import ruc.irm.wikit.esa.ESAModel;
 import ruc.irm.wikit.esa.ESAModelImpl;
@@ -27,9 +14,7 @@ import ruc.irm.wikit.espm.impl.SemanticPathMiningWikiImpl;
 import ruc.irm.wikit.util.ExtendMap;
 import ruc.irm.wikit.web.WebContex;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

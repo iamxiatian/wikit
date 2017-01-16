@@ -1,25 +1,10 @@
 package ruc.irm.wikit.web.handler;
 
 import fi.iki.elonen.NanoHTTPD;
-import gnu.trove.procedure.TIntProcedure;
-import gnu.trove.set.TIntSet;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import ruc.irm.wikit.cache.ArticleCache;
-import ruc.irm.wikit.cache.LinkCache;
-import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
-import ruc.irm.wikit.cache.impl.LinkCacheRedisImpl;
-import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.web.RouterNanoHTTPD;
 
-import javax.net.ssl.SSLEngineResult;
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**

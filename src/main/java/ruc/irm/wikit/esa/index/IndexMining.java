@@ -15,7 +15,6 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
-import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.util.HeapSort;
 import ruc.irm.wikit.util.text.analysis.ESAAnalyzer;
 

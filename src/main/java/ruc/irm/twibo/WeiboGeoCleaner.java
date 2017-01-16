@@ -1,11 +1,8 @@
 package ruc.irm.twibo;
 
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.Jedis;
-import ruc.irm.wikit.common.conf.Conf;
 
 import java.io.*;
 import java.text.DecimalFormat;

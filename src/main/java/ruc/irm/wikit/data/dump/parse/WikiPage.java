@@ -1,7 +1,6 @@
 package ruc.irm.wikit.data.dump.parse;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import de.tudarmstadt.ukp.wikipedia.parser.Link;
 import de.tudarmstadt.ukp.wikipedia.parser.Paragraph;
 import de.tudarmstadt.ukp.wikipedia.parser.ParsedPage;

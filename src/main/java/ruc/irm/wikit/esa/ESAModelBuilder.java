@@ -1,12 +1,10 @@
 package ruc.irm.wikit.esa;
 
 import org.apache.commons.cli.*;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
-import ruc.irm.wikit.common.exception.WikitException;
 import ruc.irm.wikit.data.dump.impl.PageSequenceDump;
 import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.esa.concept.domain.FullConcept;
@@ -18,11 +16,7 @@ import ruc.irm.wikit.esa.dataset.visitor.IndexConceptVisitor;
 import ruc.irm.wikit.esa.index.IndexMining;
 import ruc.irm.wikit.util.ProgressCounter;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.Set;
 
 /**
  * Build ESA Model

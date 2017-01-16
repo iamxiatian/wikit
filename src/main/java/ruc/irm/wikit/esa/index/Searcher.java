@@ -1,31 +1,25 @@
 package ruc.irm.wikit.esa.index;
 
-import gnu.trove.map.hash.TIntDoubleHashMap;
-import gnu.trove.map.hash.TIntFloatHashMap;
 import org.apache.commons.cli.*;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.BytesRef;
-import org.neo4j.index.impl.lucene.Hits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.common.exception.WikitException;
 import ruc.irm.wikit.util.ConsoleLoop;
-import ruc.irm.wikit.util.HeapSort;
 import ruc.irm.wikit.util.text.analysis.ESAAnalyzer;
 
-import java.io.*;
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Search content from indexed articles. Usage:

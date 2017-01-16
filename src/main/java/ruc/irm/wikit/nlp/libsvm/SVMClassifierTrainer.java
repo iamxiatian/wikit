@@ -6,9 +6,9 @@ import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
 import cc.mallet.types.Label;
 import ruc.irm.wikit.nlp.libsvm.common.SparseVector;
+import ruc.irm.wikit.nlp.libsvm.ex.SVMTrainer;
 import ruc.irm.wikit.nlp.libsvm.kernel.CustomKernel;
 import ruc.irm.wikit.nlp.libsvm.kernel.KernelManager;
-import ruc.irm.wikit.nlp.libsvm.ex.SVMTrainer;
 
 import java.util.ArrayList;
 import java.util.HashMap;

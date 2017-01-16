@@ -1,7 +1,9 @@
 package ruc.irm.wikit.ui;
 
 import ruc.irm.wikit.cache.ArticleCache;
+import ruc.irm.wikit.cache.LinkCache;
 import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
+import ruc.irm.wikit.cache.impl.LinkCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.db.Wikipedia;
@@ -9,8 +11,6 @@ import ruc.irm.wikit.esa.ESAModel;
 import ruc.irm.wikit.esa.ESAModelImpl;
 import ruc.irm.wikit.esa.concept.ConceptCache;
 import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
-import ruc.irm.wikit.cache.LinkCache;
-import ruc.irm.wikit.cache.impl.LinkCacheRedisImpl;
 import ruc.irm.wikit.mining.relatedness.LinkRelatedness;
 
 import javax.swing.*;

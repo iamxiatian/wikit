@@ -4,16 +4,10 @@ import org.apache.commons.cli.*;
 import ruc.irm.wikit.cache.impl.RedirectCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
-import ruc.irm.wikit.data.dump.WikiPageDump;
-import ruc.irm.wikit.data.dump.impl.PageXmlDump;
-import ruc.irm.wikit.data.extract.ExtractLabelsFilter;
-import ruc.irm.wikit.data.extract.ExtractLinksFilter;
-import ruc.irm.wikit.data.extract.ExtractRedirectsFilter;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * @author Tian Xia

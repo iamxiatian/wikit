@@ -17,17 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
-import ruc.irm.wikit.esa.ESAModelImpl;
-import ruc.irm.wikit.esa.concept.ConceptCache;
-import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
-import ruc.irm.wikit.esa.concept.vector.ConceptIterator;
-import ruc.irm.wikit.esa.concept.vector.ConceptVector;
 import ruc.irm.wikit.util.ConsoleLoop;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Scanner;
 import java.util.Set;
 
 

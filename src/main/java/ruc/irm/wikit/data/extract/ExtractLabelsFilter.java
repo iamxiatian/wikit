@@ -1,12 +1,7 @@
 package ruc.irm.wikit.data.extract;
 
-import com.alibaba.fastjson.JSON;
 import de.tudarmstadt.ukp.wikipedia.parser.Link;
-import org.apache.commons.cli.*;
 import ruc.irm.wikit.common.conf.Conf;
-import ruc.irm.wikit.common.conf.ConfFactory;
-import ruc.irm.wikit.data.dump.WikiPageDump;
-import ruc.irm.wikit.data.dump.impl.PageXmlDump;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 import ruc.irm.wikit.util.Big5GB;
@@ -15,8 +10,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 从维基百科的词条中抽取出链接信息和重定向信息，链接信息保存到json格式的文件中，

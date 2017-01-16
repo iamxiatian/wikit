@@ -1,8 +1,6 @@
 package ruc.irm.wikit.data.export;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -12,8 +10,6 @@ import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.data.dump.WikiPageDump;
 import ruc.irm.wikit.data.dump.impl.PageSequenceDump;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
-import ruc.irm.wikit.espm.graph.CategoryTreeGraph;
-import ruc.irm.wikit.espm.graph.CategoryTreeGraphRedisImpl;
 import ruc.irm.wikit.util.ProgressCounter;
 
 import java.io.*;

@@ -2,12 +2,7 @@ package ruc.irm.wikit.nlp.libsvm;
 
 import cc.mallet.classify.Classifier;
 import cc.mallet.classify.ClassifierTrainer;
-import cc.mallet.pipe.CharSequence2TokenSequence;
-import cc.mallet.pipe.FeatureSequence2FeatureVector;
-import cc.mallet.pipe.Pipe;
-import cc.mallet.pipe.SerialPipes;
-import cc.mallet.pipe.Target2Label;
-import cc.mallet.pipe.TokenSequence2FeatureSequence;
+import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.CsvIterator;
 import cc.mallet.types.InstanceList;
 import ruc.irm.wikit.nlp.libsvm.kernel.LinearKernel;

@@ -1,22 +1,23 @@
 package ruc.irm.wikit.cache;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
-import com.google.common.io.Files;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
+import ruc.irm.wikit.cache.impl.CategoryCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.common.exception.MissedException;
-import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
-import ruc.irm.wikit.cache.impl.CategoryCacheRedisImpl;
 import ruc.irm.wikit.data.dump.impl.PageSequenceDump;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 import ruc.irm.wikit.model.Category;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.NumberFormat;
 import java.util.*;
 

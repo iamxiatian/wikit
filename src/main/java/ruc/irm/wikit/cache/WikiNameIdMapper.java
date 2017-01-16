@@ -7,12 +7,10 @@ import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.common.exception.WikitException;
 import ruc.irm.wikit.data.dump.WikiPageDump;
-import ruc.irm.wikit.data.dump.impl.PageSequenceDump;
 import ruc.irm.wikit.data.dump.impl.PageXmlDump;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
 
-import java.io.File;
 import java.io.IOException;
 
 /**

@@ -7,14 +7,14 @@ import cc.mallet.types.Instance;
 import cc.mallet.types.LabelAlphabet;
 import cc.mallet.types.LabelVector;
 import ruc.irm.wikit.nlp.libsvm.common.SparseVector;
+import ruc.irm.wikit.nlp.libsvm.ex.SVMPredictor;
 import ruc.irm.wikit.nlp.libsvm.kernel.CustomKernel;
 import ruc.irm.wikit.nlp.libsvm.kernel.KernelManager;
-import ruc.irm.wikit.nlp.libsvm.ex.SVMPredictor;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.io.Serializable;
 
 /**
  * A wrapper for LibSVM classifier.

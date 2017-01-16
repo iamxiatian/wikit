@@ -17,7 +17,6 @@ import ruc.irm.wikit.espm.graph.CategoryTreeGraphRedisImpl;
 import ruc.irm.wikit.espm.impl.DynamicPathTree;
 import ruc.irm.wikit.espm.impl.GreedyMWIS;
 import ruc.irm.wikit.espm.impl.SemanticPathMiningWikiImpl;
-import ruc.irm.wikit.web.WebContex;
 
 import java.util.ArrayList;
 import java.util.List;

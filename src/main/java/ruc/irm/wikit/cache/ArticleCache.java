@@ -2,15 +2,12 @@ package ruc.irm.wikit.cache;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
+import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
 import ruc.irm.wikit.common.exception.MissedException;
-import ruc.irm.wikit.cache.impl.ArticleCacheRedisImpl;
-import ruc.irm.wikit.data.dump.WikiPageDump;
-import ruc.irm.wikit.data.dump.impl.PageXmlDump;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;

@@ -17,7 +17,9 @@ import ruc.irm.wikit.espm.graph.CategoryTreeGraph;
 import ruc.irm.wikit.espm.graph.CategoryTreeGraphRedisImpl;
 import ruc.irm.wikit.util.ValueComparator;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 /**

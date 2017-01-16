@@ -21,32 +21,21 @@ package ruc.irm.wikit.db;
 
 import com.sleepycat.je.EnvironmentLockedException;
 import org.apache.commons.cli.*;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.common.conf.ConfFactory;
-import ruc.irm.wikit.db.je.WDatabase;
 import ruc.irm.wikit.db.je.WEntry;
 import ruc.irm.wikit.db.je.WEnvironment;
 import ruc.irm.wikit.db.je.WIterator;
 import ruc.irm.wikit.db.je.it.PageIterator;
-import ruc.irm.wikit.db.je.it.TitleIterator;
 import ruc.irm.wikit.model.Page;
 import ruc.irm.wikit.util.ConsoleLoop;
-import ruc.irm.wikit.util.ProgressTracker;
-import scala.Console;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Scanner;
-
-import static ruc.irm.wikit.db.je.WDatabase.DatabaseType.articlesByTitle;
-import static ruc.irm.wikit.db.je.WDatabase.DatabaseType.categoriesByTitle;
 
 
 /**

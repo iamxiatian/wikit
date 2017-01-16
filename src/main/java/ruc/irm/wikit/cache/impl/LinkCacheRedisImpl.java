@@ -24,7 +24,6 @@ import ruc.irm.wikit.util.NumberUtils;
 import ruc.irm.wikit.util.ProgressCounter;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;

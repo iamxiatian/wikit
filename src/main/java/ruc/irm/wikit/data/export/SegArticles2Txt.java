@@ -83,14 +83,7 @@ public class SegArticles2Txt {
         newWordDictWriter.close();
         dump.close();
     }
-//
-//    private void testSegment() {
-//        Conf conf = ConfFactory.defaultConf();
-//        List<SegWord> list = SegmentFactory.getSegment(conf).tag("好啊，太好了，真棒！好好学习，天天向上！\n\r\n\n牢记毛主席的教诲。" + "继上次提取关键词之后，项目组长又要求我对关键词进行聚类。说实话，我不太明白对关键词聚类跟新闻推荐有什么联系，不过他说什么我照做就是了。\n" +
-//                "\n" +
-//                "按照一般的思路，可以用新闻ID向量来表示某个关键词，这就像广告推荐系统里面用用户访问类别向量来表示用户一样，然后就可以用kmeans的方法进行聚类了。不过对于新闻来说存在一个问题，那就量太大，如果给你十万篇新闻，那每一个关键词将需要十万维的向量表示，随着新闻数迅速增加，那维度就更大了，这计算起来难度太大。于是，这个方法思路简单但是不可行。");
-//        System.out.println(list);
-//    }
+
 
     public static void main(String[] args) throws ParseException, IOException {
         HelpFormatter helpFormatter = new HelpFormatter();

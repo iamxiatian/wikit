@@ -1,11 +1,9 @@
 package ruc.irm.wikit.data.dump;
 
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.lang3.StringUtils;
 import ruc.irm.wikit.common.conf.Conf;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
 import ruc.irm.wikit.data.dump.parse.WikiPageFilter;
-import ruc.irm.wikit.data.dump.parse.WikiPageReader;
 
 import java.io.*;
 import java.sql.SQLException;

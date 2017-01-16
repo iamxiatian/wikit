@@ -1,7 +1,5 @@
 package ruc.irm.wikit.espm.graph;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -17,7 +15,6 @@ import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.model.Category;
 import ruc.irm.wikit.util.ConsoleLoop;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;

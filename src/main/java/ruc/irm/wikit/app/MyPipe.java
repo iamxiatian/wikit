@@ -7,7 +7,6 @@ import cc.mallet.types.TokenSequence;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
-import ruc.irm.wikit.util.PorterStemmer;
 
 import java.io.File;
 import java.util.List;

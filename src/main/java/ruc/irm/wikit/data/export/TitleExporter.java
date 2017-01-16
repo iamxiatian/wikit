@@ -3,8 +3,9 @@ package ruc.irm.wikit.data.export;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import de.tudarmstadt.ukp.wikipedia.api.CategoryGraph;
 import org.apache.commons.cli.*;
+import org.apache.commons.lang3.tuple.Pair;
+import ruc.irm.wikit.cache.ArticleCache;
 import ruc.irm.wikit.cache.CategoryCache;
 import ruc.irm.wikit.cache.impl.CategoryCacheRedisImpl;
 import ruc.irm.wikit.common.conf.Conf;
@@ -13,18 +14,24 @@ import ruc.irm.wikit.common.exception.MissedException;
 import ruc.irm.wikit.data.dump.WikiPageDump;
 import ruc.irm.wikit.data.dump.impl.PageSequenceDump;
 import ruc.irm.wikit.data.dump.parse.WikiPage;
+import ruc.irm.wikit.esa.concept.ConceptCache;
+import ruc.irm.wikit.esa.concept.ConceptCacheRedisImpl;
 import ruc.irm.wikit.espm.graph.CategoryTreeGraph;
 import ruc.irm.wikit.espm.graph.CategoryTreeGraphRedisImpl;
 import ruc.irm.wikit.util.ProgressCounter;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
-
-import static java_cup.emit.prefix;
 
 /**
  * Export Wiki titles
+ *
  * @author Tian Xia
  * @date Jul 19, 2016 10:51
  */
@@ -34,44 +41,162 @@ public class TitleExporter {
     private CategoryCache categoryCache = null;
     private CategoryTreeGraph treeCache = null;
     private Set<String> visitedCategories = new HashSet<>();
+    private Set<Integer> visitedIds = new HashSet<>();
+    private ArticleCache articleCache = null;
+    private ConceptCache conceptCache = null;
+
 
     public TitleExporter(Conf conf) throws MissedException {
         this.conf = conf;
         this.categoryCache = new CategoryCacheRedisImpl(conf);
         this.treeCache = new CategoryTreeGraphRedisImpl(conf);
+        this.conceptCache = new ConceptCacheRedisImpl(conf);
     }
 
-    public void exportCategoryTree(File f, String name) throws MissedException, IOException {
+    public void exportCategoryTree(File dir, String rootName) throws MissedException, IOException {
+        //CategoryTreeGraph treeGraph = new CategoryTreeGraphRedisImpl(conf);
+        this.visitedCategories.clear();
+        int rootId = categoryCache.getIdByName(rootName, 0);
+        //this.visitedIds.add(rootId);
+
+        Set<Integer> parentIds = categoryCache.getChildIds(rootId);
+        for (int parentId : parentIds) {
+            String name = categoryCache.getNameById(parentId);
+            //this.visitedIds.add(parentId);
+
+            File f = new File(dir, name + ".txt");
+
+            PrintWriter writer = new PrintWriter(Files.newWriter(f, Charsets.UTF_8));
+            exportCategoriesBFS(writer, parentId, rootName + "=>" + name);
+            writer.close();
+        }
+    }
+
+    /**
+     * 按照广度优先遍历方式输出一个节点下的所有路径
+     *
+     * @param writer
+     * @throws MissedException
+     */
+    private void exportCategoriesBFS(PrintWriter writer, int rootId, String rootPrefix) throws MissedException {
+        Set<Integer> visited = new HashSet<>();
+        visited.add(rootId);
+        Queue<Pair<Integer, String>> queue = new LinkedList<>();
+        queue.add(Pair.of(rootId, rootPrefix));
+
+        while (!queue.isEmpty()) {
+            Pair<Integer, String> node = queue.poll();
+            int parentId = node.getLeft();
+            String prefix = node.getRight();
+            Set<Integer> childIds = categoryCache.getChildIds(parentId);
+
+            boolean allVisited = true;
+            if (childIds != null && childIds.size() > 0) {
+                for (int id : childIds) {
+                    if(visited.contains(id))
+                        continue;
+                    else
+                        visited.add(id);
+
+                    allVisited = false;
+
+                    String name = categoryCache.getNameById(id);
+                    if (name.equalsIgnoreCase("Years") || name.equalsIgnoreCase("Decades")) continue;
+
+                    queue.add(Pair.of(id, prefix  + "=>" + name));
+                }
+            }
+
+            if(allVisited) {
+                writer.println(prefix);
+
+                //output articles
+                Set<Integer> articleIds = categoryCache.getArticleIds(parentId);
+                for (int aid : articleIds) {
+                    String articleName = conceptCache.getNameById(aid);
+                    if (articleName != null) {
+                        writer.println(prefix + "=>[" + articleName + "]");
+                    }
+                }
+
+            }
+        }
+
+
+    }
+
+    /**
+     * 递归导出某个类别下的所有子类，按照距离父类的距离用Tab划分层级
+     *
+     * @param writer
+     * @param parentId
+     * @throws MissedException
+     */
+    private void exportCategoriesDFS(PrintWriter writer, int parentId, String prefix) throws MissedException {
+        Set<Integer> childIds = categoryCache.getChildIds(parentId);
+
+        if (childIds != null && childIds.size() > 0) {
+            for (int id : childIds) {
+                if(visitedIds.contains(id))
+                    continue;
+                else
+                    visitedIds.add(id);
+
+                String name = categoryCache.getNameById(id);
+                if (name.equalsIgnoreCase("Years") || name.equalsIgnoreCase("Decades")) continue;
+
+
+                exportCategoriesDFS(writer, id, (prefix + "=>" + name));
+            }
+        } else {
+            writer.println(prefix);
+
+            //output articles
+            Set<Integer> articleIds = categoryCache.getArticleIds(parentId);
+            for (int aid : articleIds) {
+                String articleName = articleCache.getNameById(aid, null);
+                if (articleName != null) {
+                    writer.println(prefix + "=>[" + articleName + "]");
+                }
+            }
+
+        }
+    }
+
+    public void exportCategoryTreeOld(File f, String name) throws MissedException, IOException {
         //CategoryTreeGraph treeGraph = new CategoryTreeGraphRedisImpl(conf);
         this.visitedCategories.clear();
         int parentId = categoryCache.getIdByName(name, 0);
+        this.visitedIds.add(parentId);
+
         PrintWriter writer = new PrintWriter(Files.newWriter(f, Charsets.UTF_8));
         exportCategoryTree(writer, parentId, 0);
         writer.close();
     }
 
     /**
-     * 递归导出某个类别下的所有子类，按照距离父类的距离用Tabh划分层级
+     * 递归导出某个类别下的所有子类，按照距离父类的距离用Tab划分层级
+     *
      * @param writer
      * @param parentId
      * @param indentCount
      * @throws MissedException
      */
     private void exportCategoryTree(PrintWriter writer, int parentId, int indentCount) throws MissedException {
-        if(indentCount<=2) {
+        if (indentCount <= 2) {
             Set<Integer> childIds = categoryCache.getChildIds(parentId);
 
             if (childIds != null || childIds.size() > 0) {
                 for (int id : childIds) {
                     String name = categoryCache.getNameById(id);
-                    if(name.equalsIgnoreCase("Years") || name.equalsIgnoreCase("Decades")) continue;
+                    if (name.equalsIgnoreCase("Years") || name.equalsIgnoreCase("Decades")) continue;
 
-                    for(int i=0; i<indentCount; i++) {
+                    for (int i = 0; i < indentCount; i++) {
                         writer.print("\t");
                     }
                     writer.println(name);
 
-                    exportCategoryTree(writer, id, (indentCount+1));
+                    exportCategoryTree(writer, id, (indentCount + 1));
                 }
             }
         } else {
@@ -114,13 +239,13 @@ public class TitleExporter {
     private void exportSubCategory(PrintWriter writer, int startCategoryId) throws MissedException {
         CategoryTreeGraph treeGraph = new CategoryTreeGraphRedisImpl(conf);
         String name = treeGraph.getNameById(startCategoryId, null);
-        if(name == null)
+        if (name == null)
             return;
 
         Set<Integer> childIds = treeGraph.getChildIds(startCategoryId);
 
         if (childIds == null || childIds.size() == 0) {
-            if(treeGraph.getConceptCount(startCategoryId) > 5) {
+            if (treeGraph.getConceptCount(startCategoryId) > 5) {
                 writer.println(name);
             }
         } else {
@@ -184,7 +309,7 @@ public class TitleExporter {
 
         Conf conf = ConfFactory.createConf(commandLine.getOptionValue("c"), true);
         TitleExporter exporter = new TitleExporter(conf);
-        if(commandLine.hasOption("ec") && commandLine.hasOption("cf") && commandLine.hasOption("title")) {
+        if (commandLine.hasOption("ec") && commandLine.hasOption("cf") && commandLine.hasOption("title")) {
             System.out.println("save categories to file:" + commandLine.getOptionValue("cf"));
             File cf = new File(commandLine.getOptionValue("cf"));
             String title = commandLine.getOptionValue("title");
